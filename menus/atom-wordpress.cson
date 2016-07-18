@@ -1,0 +1,54 @@
+# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
+'context-menu':
+    '.project-root.wordpress > .header': [
+        {
+            'label': 'Wordpress',
+            'submenu': [
+                {
+                    'label': 'Open Debug Log',
+                    'command': 'atom-wordpress:openDebugLog'
+                },
+                {
+                    'label': 'Add Project Root',
+                    'command': 'atom-wordpress:openProjectRoot'
+                }
+            ]
+        }
+    ],
+    '.project-root.wordpress.watching > .header': [
+        {
+            'label': 'Wordpress',
+            'submenu': [
+                {
+                    'label': 'Show Notifications',
+                    'command': 'atom-wordpress:showRecent'
+                },
+                {
+                    'label': 'Pause Watching',
+                    'command': 'atom-wordpress:pauseWatchDebugLog'
+                }
+            ]
+        }
+    ],
+    '.project-root.wordpress:not(.watching) > .header': [
+        {
+            'label': 'Wordpress',
+            'submenu': [
+                {
+                    'label': 'Resume Watching',
+                    'command': 'atom-wordpress:resumeWatchDebugLog'
+                }
+            ]
+        }
+    ],
+    '.project-root.wordpress.cli > .header': [
+        {
+            'label': 'Wordpress',
+            'submenu': [
+                {
+                    'label': 'Export Database',
+                    'command': 'atom-wordpress:exportDatabase'
+                }
+            ]
+        }
+    ]
