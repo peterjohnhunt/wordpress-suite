@@ -1,10 +1,10 @@
 {
-  "name": "atom-wordpress",
-  "main": "./lib/atom-wordpress",
-  "version": "0.0.3",
+  "name": "wordpress-suite",
+  "main": "./lib/wordpress-suite",
+  "version": "0.0.1",
   "description": "Atom Wordpress Manager",
   "keywords": [],
-  "repository": "https://github.com/peterjohnhunt/atom-wordpress",
+  "repository": "https://github.com/peterjohnhunt/wordpress-suite",
   "license": "MIT",
   "engines": {
     "atom": ">=1.0.0 <2.0.0"

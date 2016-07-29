@@ -5,7 +5,7 @@ Array.prototype.difference = (a) ->
     return @filter (i) ->
         return a.indexOf(i) < 0
 
-module.exports = atomWordpress =
+module.exports = wordpressSuite =
     consumeAutoreload: (reloader) ->
         reloader(pkg:"atom-wordpress",files:["package.json"],folders:["lib/","menus/"])
 
