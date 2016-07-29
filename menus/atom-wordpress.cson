@@ -5,12 +5,20 @@
             'label': 'Wordpress',
             'submenu': [
                 {
-                    'label': 'Open Debug Log',
-                    'command': 'atom-wordpress:openDebugLog'
+                    'label': 'Add Project Root',
+                    'command': 'atom-wordpress:root:open'
                 },
                 {
-                    'label': 'Add Project Root',
-                    'command': 'atom-wordpress:openProjectRoot'
+                    'label': 'Show Notifications',
+                    'command': 'atom-wordpress:notifications:show'
+                },
+                {
+                    'label': 'Clear Notifications',
+                    'command': 'atom-wordpress:notifications:clear'
+                },
+                {
+                    'label': 'Open Debug Log',
+                    'command': 'atom-wordpress:debug:open'
                 }
             ]
         }
@@ -20,12 +28,8 @@
             'label': 'Wordpress',
             'submenu': [
                 {
-                    'label': 'Show Notifications',
-                    'command': 'atom-wordpress:showRecent'
-                },
-                {
                     'label': 'Pause Watching',
-                    'command': 'atom-wordpress:pauseWatchDebugLog'
+                    'command': 'atom-wordpress:debug:pause'
                 }
             ]
         }
@@ -36,7 +40,7 @@
             'submenu': [
                 {
                     'label': 'Resume Watching',
-                    'command': 'atom-wordpress:resumeWatchDebugLog'
+                    'command': 'atom-wordpress:debug:resume'
                 }
             ]
         }
@@ -47,7 +51,7 @@
             'submenu': [
                 {
                     'label': 'Export Database',
-                    'command': 'atom-wordpress:exportDatabase'
+                    'command': 'atom-wordpress:cli:database:export'
                 }
             ]
         }
