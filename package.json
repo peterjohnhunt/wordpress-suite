@@ -1,7 +1,7 @@
 {
   "name": "atom-wordpress",
   "main": "./lib/atom-wordpress",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Atom Wordpress Manager",
   "keywords": [],
   "repository": "https://github.com/peterjohnhunt/atom-wordpress",
