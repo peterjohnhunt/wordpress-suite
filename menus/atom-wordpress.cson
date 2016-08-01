@@ -6,19 +6,19 @@
             'submenu': [
                 {
                     'label': 'Add Project Root',
-                    'command': 'atom-wordpress:root:open'
+                    'command': 'wordpress-suite:root:open'
                 },
                 {
                     'label': 'Show Notifications',
-                    'command': 'atom-wordpress:notifications:show'
+                    'command': 'wordpress-suite:notifications:show'
                 },
                 {
                     'label': 'Clear Notifications',
-                    'command': 'atom-wordpress:notifications:clear'
+                    'command': 'wordpress-suite:notifications:clear'
                 },
                 {
                     'label': 'Open Debug Log',
-                    'command': 'atom-wordpress:debug:open'
+                    'command': 'wordpress-suite:debug:open'
                 }
             ]
         }
@@ -29,7 +29,7 @@
             'submenu': [
                 {
                     'label': 'Pause Watching',
-                    'command': 'atom-wordpress:debug:pause'
+                    'command': 'wordpress-suite:debug:pause'
                 }
             ]
         }
@@ -40,7 +40,7 @@
             'submenu': [
                 {
                     'label': 'Resume Watching',
-                    'command': 'atom-wordpress:debug:resume'
+                    'command': 'wordpress-suite:debug:resume'
                 }
             ]
         }
@@ -51,7 +51,7 @@
             'submenu': [
                 {
                     'label': 'Export Database',
-                    'command': 'atom-wordpress:cli:database:export'
+                    'command': 'wordpress-suite:cli:database:export'
                 }
             ]
         }

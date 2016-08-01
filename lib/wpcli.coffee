@@ -1,36 +1,36 @@
 WP = require 'wp-cli'
 {CompositeDisposable, Emitter} = require 'atom'
 
-module.exports = class Wordpress
+module.exports = class WPCLI
     constructor: (directory) ->
-        @subscriptions = new CompositeDisposable
-        @subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'atom-wordpress:cli:database:export': => @export()
-
         @emitter = new Emitter
         @root = directory
+
+        @subscriptions = new CompositeDisposable
+        @subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
         WP.discover { path: @root.getPath() }, (wp) => @initialize(wp)
 
     initialize: (wp) ->
-        @wp = wp
-
-        @wp.cli.info (err,data) =>
+        wp.cli.info (err,data) =>
             if err
                 @emitter.emit 'error', err
             else
                 @emitter.emit 'initialize'
 
-        @wp.option.get 'blogname', (err,data) =>
-            if err
-                @emitter.emit 'error', err
-            else
-                @emitter.emit 'name', data
+                @wp = wp
 
-        @wp.option.get 'home', (err,data) =>
-            if err
-                @emitter.emit 'error', err
-            else
-                @emitter.emit 'url', data
+                @wp.option.get 'blogname', (err,data) =>
+                    if err
+                        @emitter.emit 'error', err
+                    else
+                        @emitter.emit 'name', data
+
+                @wp.option.get 'home', (err,data) =>
+                    if err
+                        @emitter.emit 'error', err
+                    else
+                        @emitter.emit 'url', data
 
     export: ->
         exportPath = @root.getSubdirectory('db')
@@ -43,12 +43,15 @@ module.exports = class Wordpress
                     @emitter.emit 'export', data
 
     dispose: ->
-        @emitter.emit 'dispose'
-        @emitter.dispose()
-        @subscriptions.dispose()
+        @emitter?.emit 'dispose'
+        @emitter?.dispose()
+        @subscriptions?.dispose()
 
     onDidInitialize: (callback) ->
         @emitter.on('initialize', callback)
+
+    onDidUpdate: (callback) ->
+        @emitter.on('update', callback)
 
     onDidDispose: (callback) ->
         @emitter.on('dispose', callback)

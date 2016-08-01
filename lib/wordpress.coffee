@@ -11,9 +11,9 @@ module.exports = class Wordpress
         @messages      = []
         @subscriptions = new CompositeDisposable
 
-        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'atom-wordpress:root:open': => @openProjectRoot()
-        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'atom-wordpress:notifications:show': => @showNotifications()
-        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'atom-wordpress:notifications:clear': => @clearNotifications()
+        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:root:open': => if @isSelected() then @openProjectRoot()
+        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
+        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:notifications:clear': => if @isSelected() then @clearNotifications()
 
         atom.notifications.addSuccess(@name + ': Found' )
 
@@ -34,25 +34,30 @@ module.exports = class Wordpress
         @subscriptions.add @debugger.onDidMessageNotice (message) => @messages.push(atom.notifications.addWarning(@name, { dismissable: true, detail: message, buttons: [ { text: 'Clear', className: 'btn-clear', onDidClick: => @debugger.clear() }, { text: 'Open', className: 'btn-open', onDidClick: => @debugger.open() } ] }))
         @subscriptions.add @debugger.onDidMessageError (message) => @messages.push(atom.notifications.addError(@name, { dismissable: true, detail: message, icon: 'bug', buttons: [ { text: 'Clear', className: 'btn-clear', onDidClick: => @debugger.clear() }, { text: 'Open', className: 'btn-open', onDidClick: => @debugger.open() } ] }))
 
+        @subscriptions.add atom.commands.add '.project-root.wordpress', 'wordpress-suite:debug:open': => if @isSelected() then @debugger.open()
+        @subscriptions.add atom.commands.add '.project-root.wordpress.watching', 'wordpress-suite:debug:pause': => if @isSelected() then @debugger.pause()
+        @subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching)', 'wordpress-suite:debug:resume': => if @isSelected() then @debugger.resume()
+
         @subscriptions.add @debugger.onDidClear => @clearNotifications()
 
         @subscriptions.add @debugger.onDidInitialize => @addClass('watching')
+        @subscriptions.add @debugger.onDidUpdate => if @debugger.watching then @addClass('watching')
+
         @subscriptions.add @debugger.onDidDispose => @removeClass('watching')
         @subscriptions.add @debugger.onDidPause => @removeClass('watching')
         @subscriptions.add @debugger.onDidResume => @addClass('watching')
 
-        @subscriptions.add atom.project.onDidChangePaths => @debugger.initialize()
-
         @wpcli = new WPCLI(@root)
-
         @subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: true, detail: message})
         @subscriptions.add @wpcli.onDidExport => atom.notifications.addSuccess(@name + ": Database Exported")
 
+        @subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:export': => if @isSelected() then @wpcli.export()
+
         @subscriptions.add @wpcli.onDidInitialize => @addClass('cli')
+        @subscriptions.add @wpcli.onDidUpdate => if @wpcli.wp then @addClass('cli')
 
         @subscriptions.add @wpcli.onDidName (name) => @name = name
 
-        @subscriptions.add atom.project.onDidChangePaths => @debugger.initialize()
 
         @addClass('wordpress')
 
@@ -99,7 +104,14 @@ module.exports = class Wordpress
             @notifications.notificationsElement.appendChild(el)
             message.setDisplayed(true)
 
+    isSelected: ->
+        if @treeView
+            for path in @paths
+                if @treeView.entryForPath(path).classList.contains('selected')
+                    return true
+
     dispose: ->
         @debug?.dispose()
+        @wpcli?.dispose()
         @subscriptions?.dispose()
         atom.notifications.addWarning('Removed Wordpress Site: ' + @name)

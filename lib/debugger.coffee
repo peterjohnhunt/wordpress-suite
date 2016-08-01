@@ -1,14 +1,12 @@
 {CompositeDisposable, Emitter} = require 'atom'
 
-module.exports = class Wordpress
+module.exports = class Debugger
     constructor: (directory) ->
-        @subscriptions = new CompositeDisposable
-        @subscriptions.add atom.commands.add '.project-root.wordpress', 'atom-wordpress:debug:open': => @open()
-        @subscriptions.add atom.commands.add '.project-root.wordpress.watching', 'atom-wordpress:debug:pause': => @pause()
-        @subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching)', 'atom-wordpress:debug:resume': => @resume()
-
         @emitter = new Emitter
         @root = directory
+
+        @subscriptions = new CompositeDisposable
+        @subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
         @initialize()
 
@@ -65,12 +63,15 @@ module.exports = class Wordpress
             @log.history = contents
 
     dispose: ->
-        @emitter.emit 'dispose'
-        @emitter.dispose()
-        @subscriptions.dispose()
+        @emitter?.emit 'dispose'
+        @emitter?.dispose()
+        @subscriptions?.dispose()
 
     onDidInitialize: (callback) ->
         @emitter.on('initialize', callback)
+
+    onDidUpdate: (callback) ->
+        @emitter.on('update', callback)
 
     onDidClear: (callback) ->
         @emitter.on('clear', callback)

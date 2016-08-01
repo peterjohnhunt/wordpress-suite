@@ -1,5 +1,5 @@
-{CompositeDisposable, Directory, File} = require 'atom'
 Wordpress = require './wordpress'
+{CompositeDisposable, Directory, File} = require 'atom'
 
 Array.prototype.difference = (a) ->
     return @filter (i) ->
@@ -7,7 +7,7 @@ Array.prototype.difference = (a) ->
 
 module.exports = wordpressSuite =
     consumeAutoreload: (reloader) ->
-        reloader(pkg:"atom-wordpress",files:["package.json"],folders:["lib/","menus/"])
+        reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/"])
 
     activate: ->
         if atom.inDevMode()
