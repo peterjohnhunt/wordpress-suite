@@ -18,6 +18,11 @@ module.exports = class Debugger
         @log.history = ''
         @log.recent = []
         @log.watching = true;
+        @log.include = {
+            notice: true,
+            deprecated: true,
+            error: true,
+        }
 
         @log.create().then (created) =>
             if not created
@@ -55,9 +60,17 @@ module.exports = class Debugger
                 for message in messages
                     if message isnt ''
                         if message.indexOf('PHP Parse error:') == 0
-                            @emitter.emit 'message:error', message
+                            if @log.include.error
+                                message = message.replace(/PHP Parse error:\s+/,'')
+                                @emitter.emit 'message:error', message
                         else if message.indexOf('PHP Notice:') == 0
-                            @emitter.emit 'message:notice', message
+                            if @log.include.notice
+                                message = message.replace(/PHP Notice:\s+/,'')
+                                @emitter.emit 'message:notice', message
+                        else if message.indexOf('PHP Deprecated:') == 0
+                            if @log.include.deprecated
+                                message = message.replace(/PHP Deprecated:\s+/,'')
+                                @emitter.emit 'message:deprecated', message
                         else
                             @emitter.emit 'message:info', message
             @log.history = contents
@@ -87,6 +100,9 @@ module.exports = class Debugger
 
     onDidMessageNotice: (callback) ->
         @emitter.on('message:notice', callback)
+
+    onDidMessageDeprecated: (callback) ->
+        @emitter.on('message:deprecated', callback)
 
     onDidMessageError: (callback) ->
         @emitter.on('message:error', callback)

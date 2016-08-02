@@ -25,27 +25,42 @@ module.exports = class Wordpress
 
         @subscriptions.add atom.project.onDidChangePaths => @addClass('wordpress')
 
-        @debugger = new Debugger(@root)
-        @subscriptions.add @debugger.onDidInitialize => atom.notifications.addSuccess(@name + ": Watching")
-        @subscriptions.add @debugger.onDidDispose => atom.notifications.addWarning(@name + ": Stopped")
-        @subscriptions.add @debugger.onDidPause => atom.notifications.addWarning(@name + ": Paused Watching")
-        @subscriptions.add @debugger.onDidResume => atom.notifications.addSuccess(@name + ": Resumed Watching")
-        @subscriptions.add @debugger.onDidMessageInfo (message) => @messages.push(atom.notifications.addInfo(@name, { dismissable: true, detail: message, buttons: [ { text: 'Clear', className: 'btn-clear', onDidClick: => @debugger.clear() }, { text: 'Open', className: 'btn-open', onDidClick: => @debugger.open() } ] }))
-        @subscriptions.add @debugger.onDidMessageNotice (message) => @messages.push(atom.notifications.addWarning(@name, { dismissable: true, detail: message, buttons: [ { text: 'Clear', className: 'btn-clear', onDidClick: => @debugger.clear() }, { text: 'Open', className: 'btn-open', onDidClick: => @debugger.open() } ] }))
-        @subscriptions.add @debugger.onDidMessageError (message) => @messages.push(atom.notifications.addError(@name, { dismissable: true, detail: message, icon: 'bug', buttons: [ { text: 'Clear', className: 'btn-clear', onDidClick: => @debugger.clear() }, { text: 'Open', className: 'btn-open', onDidClick: => @debugger.open() } ] }))
+        @debug = new Debugger(@root)
 
-        @subscriptions.add atom.commands.add '.project-root.wordpress', 'wordpress-suite:debug:open': => if @isSelected() then @debugger.open()
-        @subscriptions.add atom.commands.add '.project-root.wordpress.watching', 'wordpress-suite:debug:pause': => if @isSelected() then @debugger.pause()
-        @subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching)', 'wordpress-suite:debug:resume': => if @isSelected() then @debugger.resume()
+        buttons = [
+            {
+                text: 'Clear',
+                className: 'btn-clear',
+                onDidClick: => @debug.clear()
+            },
+            {
+                text: 'Open',
+                className: 'btn-open',
+                onDidClick: => @debug.open()
+            }
+        ]
 
-        @subscriptions.add @debugger.onDidClear => @clearNotifications()
+        @subscriptions.add @debug.onDidInitialize => atom.notifications.addSuccess(@name + ": Watching")
+        @subscriptions.add @debug.onDidDispose => atom.notifications.addWarning(@name + ": Stopped")
+        @subscriptions.add @debug.onDidPause => atom.notifications.addWarning(@name + ": Paused Watching")
+        @subscriptions.add @debug.onDidResume => atom.notifications.addSuccess(@name + ": Resumed Watching")
+        @subscriptions.add @debug.onDidMessageInfo (message) => @messages.push(atom.notifications.addInfo(@name, { dismissable: true, detail: message, buttons: buttons }))
+        @subscriptions.add @debug.onDidMessageNotice (message) => @messages.push(atom.notifications.addWarning(@name + ' | Notice', { dismissable: false, detail: message, buttons: buttons }))
+        @subscriptions.add @debug.onDidMessageDeprecated (message) => @messages.push(atom.notifications.addWarning(@name + ' | Deprecation', { dismissable: false, detail: message, buttons: buttons }))
+        @subscriptions.add @debug.onDidMessageError (message) => @messages.push(atom.notifications.addError(@name + ' | Error', { dismissable: true, detail: message, icon: 'bug', buttons: buttons }))
 
-        @subscriptions.add @debugger.onDidInitialize => @addClass('watching')
-        @subscriptions.add @debugger.onDidUpdate => if @debugger.watching then @addClass('watching')
+        @subscriptions.add atom.commands.add '.project-root.wordpress', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
+        @subscriptions.add atom.commands.add '.project-root.wordpress.watching', 'wordpress-suite:debug:pause': => if @isSelected() then @debug.pause()
+        @subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching)', 'wordpress-suite:debug:resume': => if @isSelected() then @debug.resume()
 
-        @subscriptions.add @debugger.onDidDispose => @removeClass('watching')
-        @subscriptions.add @debugger.onDidPause => @removeClass('watching')
-        @subscriptions.add @debugger.onDidResume => @addClass('watching')
+        @subscriptions.add @debug.onDidClear => @clearNotifications()
+
+        @subscriptions.add @debug.onDidInitialize => @addClass('watching')
+        @subscriptions.add @debug.onDidUpdate => if @debug.log.watching then @addClass('watching')
+
+        @subscriptions.add @debug.onDidDispose => @removeClass('watching')
+        @subscriptions.add @debug.onDidPause => @removeClass('watching')
+        @subscriptions.add @debug.onDidResume => @addClass('watching')
 
         @wpcli = new WPCLI(@root)
         @subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: true, detail: message})
@@ -57,7 +72,6 @@ module.exports = class Wordpress
         @subscriptions.add @wpcli.onDidUpdate => if @wpcli.wp then @addClass('cli')
 
         @subscriptions.add @wpcli.onDidName (name) => @name = name
-
 
         @addClass('wordpress')
 
@@ -114,4 +128,4 @@ module.exports = class Wordpress
         @debug?.dispose()
         @wpcli?.dispose()
         @subscriptions?.dispose()
-        atom.notifications.addWarning('Removed Wordpress Site: ' + @name)
+        atom.notifications.addWarning(@name + ': Removed')

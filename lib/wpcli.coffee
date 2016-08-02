@@ -32,6 +32,12 @@ module.exports = class WPCLI
                     else
                         @emitter.emit 'url', data
 
+                @wp.plugin.list (err,data) =>
+                    if err
+                        @emitter.emit 'error', err
+                    else
+                        @emitter.emit 'plugin', data
+
     export: ->
         exportPath = @root.getSubdirectory('db')
         exportPath.create().then (created) =>
@@ -61,6 +67,9 @@ module.exports = class WPCLI
 
     onDidURL: (callback) ->
         @emitter.on('url', callback)
+
+    onDidPlugin: (callback) ->
+        @emitter.on('plugin', callback)
 
     onDidError: (callback) ->
         @emitter.on('error', callback)
