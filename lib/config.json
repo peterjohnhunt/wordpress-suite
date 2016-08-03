@@ -1,0 +1,36 @@
+{
+    "notifications": {
+        "type": "object",
+        "title": "Notifications",
+        "properties": {
+            "info": {
+                "title": "Information",
+                "description": "Show info messages",
+                "type": "boolean",
+                "default": "true",
+                "order": 1
+            },
+            "notice": {
+                "title": "Notices",
+                "description": "Show notice messages",
+                "type": "boolean",
+                "default": "true",
+                "order": 2
+            },
+            "deprecation": {
+                "title": "Deprecations",
+                "description": "Show deprecation messages",
+                "type": "boolean",
+                "default": "true",
+                "order": 3
+            },
+            "error": {
+                "title": "Errors",
+                "description": "Show error messages",
+                "type": "boolean",
+                "default": "true",
+                "order": 4
+            }
+        }
+    }
+}

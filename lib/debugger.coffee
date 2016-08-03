@@ -18,11 +18,6 @@ module.exports = class Debugger
         @log.history = ''
         @log.recent = []
         @log.watching = true;
-        @log.include = {
-            notice: true,
-            deprecated: true,
-            error: true,
-        }
 
         @log.create().then (created) =>
             if not created
@@ -60,19 +55,20 @@ module.exports = class Debugger
                 for message in messages
                     if message isnt ''
                         if message.indexOf('PHP Parse error:') == 0
-                            if @log.include.error
+                            if atom.config.get('wordpress-suite.notifications.error')
                                 message = message.replace(/PHP Parse error:\s+/,'')
                                 @emitter.emit 'message:error', message
                         else if message.indexOf('PHP Notice:') == 0
-                            if @log.include.notice
+                            if atom.config.get('wordpress-suite.notifications.notice')
                                 message = message.replace(/PHP Notice:\s+/,'')
                                 @emitter.emit 'message:notice', message
                         else if message.indexOf('PHP Deprecated:') == 0
-                            if @log.include.deprecated
+                            if atom.config.get('wordpress-suite.notifications.deprecation')
                                 message = message.replace(/PHP Deprecated:\s+/,'')
-                                @emitter.emit 'message:deprecated', message
+                                @emitter.emit 'message:deprecation', message
                         else
-                            @emitter.emit 'message:info', message
+                            if atom.config.get('wordpress-suite.notifications.info')
+                                @emitter.emit 'message:info', message
             @log.history = contents
 
     dispose: ->
@@ -101,8 +97,8 @@ module.exports = class Debugger
     onDidMessageNotice: (callback) ->
         @emitter.on('message:notice', callback)
 
-    onDidMessageDeprecated: (callback) ->
-        @emitter.on('message:deprecated', callback)
+    onDidMessageDeprecation: (callback) ->
+        @emitter.on('message:deprecation', callback)
 
     onDidMessageError: (callback) ->
         @emitter.on('message:error', callback)

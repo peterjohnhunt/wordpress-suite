@@ -1,4 +1,5 @@
 Wordpress = require './wordpress'
+config = require './config'
 {CompositeDisposable, Directory, File} = require 'atom'
 
 Array.prototype.difference = (a) ->
@@ -6,6 +7,9 @@ Array.prototype.difference = (a) ->
         return a.indexOf(i) < 0
 
 module.exports = wordpressSuite =
+
+    config: config
+
     consumeAutoreload: (reloader) ->
         reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/","node_modules/"])
 

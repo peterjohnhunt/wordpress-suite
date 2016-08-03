@@ -46,7 +46,7 @@ module.exports = class Wordpress
         @subscriptions.add @debug.onDidResume => atom.notifications.addSuccess(@name + ": Resumed Watching")
         @subscriptions.add @debug.onDidMessageInfo (message) => @messages.push(atom.notifications.addInfo(@name, { dismissable: true, detail: message, buttons: buttons }))
         @subscriptions.add @debug.onDidMessageNotice (message) => @messages.push(atom.notifications.addWarning(@name + ' | Notice', { dismissable: false, detail: message, buttons: buttons }))
-        @subscriptions.add @debug.onDidMessageDeprecated (message) => @messages.push(atom.notifications.addWarning(@name + ' | Deprecation', { dismissable: false, detail: message, buttons: buttons }))
+        @subscriptions.add @debug.onDidMessageDeprecation (message) => @messages.push(atom.notifications.addWarning(@name + ' | Deprecation', { dismissable: false, detail: message, buttons: buttons }))
         @subscriptions.add @debug.onDidMessageError (message) => @messages.push(atom.notifications.addError(@name + ' | Error', { dismissable: true, detail: message, icon: 'bug', buttons: buttons }))
 
         @subscriptions.add atom.commands.add '.project-root.wordpress', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
