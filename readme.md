@@ -1,8 +1,7 @@
 ![Wordpress Suite](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/logo.png "Wordpress Suite")
 
-**Wordpress Suite** is an ever expanding suite of wordpress tools, accessible right from atom's interface!
-
 ## Summary
+**Wordpress Suite** is an ever expanding suite of wordpress tools, accessible right from atom's interface!
 * [Installation](#installation)
 * [Features](#features)
     * [General](#general-features)
