@@ -1,4 +1,5 @@
 WP = require 'wp-cli'
+command = require 'command-exists'
 {CompositeDisposable, Emitter} = require 'atom'
 
 module.exports = class WPCLI
@@ -9,34 +10,35 @@ module.exports = class WPCLI
         @subscriptions = new CompositeDisposable
         @subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
-        WP.discover { path: @root.getPath() }, (wp) => @initialize(wp)
-
-    initialize: (wp) ->
-        wp.cli.info (err,data) =>
-            if err
-                @emitter.emit 'error', err
+        command 'wp', (err,exists) =>
+            if not exists
+                @emitter.emit 'error', 'WP CLI not installed'
             else
-                @emitter.emit 'initialize'
+                @initialize()
 
-                @wp = wp
+    initialize: ->
+        WP.discover { path: @root.getPath() }, (wp) =>
+            @wp = wp
 
-                @wp.option.get 'blogname', (err,data) =>
-                    if err
-                        @emitter.emit 'error', err
-                    else
-                        @emitter.emit 'name', data
+            @wp.option.get 'blogname', (err,data) =>
+                if err
+                    @emitter.emit 'error', err
+                else
+                    @emitter.emit 'name', data
 
-                @wp.option.get 'home', (err,data) =>
-                    if err
-                        @emitter.emit 'error', err
-                    else
-                        @emitter.emit 'url', data
+            @wp.option.get 'home', (err,data) =>
+                if err
+                    @emitter.emit 'error', err
+                else
+                    @emitter.emit 'url', data
 
-                @wp.plugin.list (err,data) =>
-                    if err
-                        @emitter.emit 'error', err
-                    else
-                        @emitter.emit 'plugin', data
+            @wp.plugin.list (err,data) =>
+                if err
+                    @emitter.emit 'error', err
+                else
+                    @emitter.emit 'plugin', data
+
+            @emitter.emit 'initialize'
 
     export: ->
         exportPath = @root.getSubdirectory('db')

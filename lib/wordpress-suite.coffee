@@ -7,7 +7,7 @@ Array.prototype.difference = (a) ->
 
 module.exports = wordpressSuite =
     consumeAutoreload: (reloader) ->
-        reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/"])
+        reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/","node_modules/"])
 
     activate: ->
         if atom.inDevMode()
