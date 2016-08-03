@@ -1,4 +1,4 @@
-# Wordpress Suite
+![Wordpress Suite](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/logo.png "Wordpress Suite")
 
 **Wordpress Suite** is an ever expanding suite of wordpress tools, accessible right from atom's interface!
 
@@ -18,7 +18,7 @@ Atom Package: https://atom.io/packages/wordpress-suite
 ```bash
 apm install wordpress-suite
 ```
-Or Settings/Preferences ➔ Packages ➔ Search for `wordpress-suite`
+Or Preferences ➔ Install ➔ Search for `wordpress-suite`
 
 ## Features
 
