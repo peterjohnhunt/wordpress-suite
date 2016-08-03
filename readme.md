@@ -7,6 +7,7 @@
     * [General](#general-features)
     * [Debug Watcher](#debug-watcher)
     * [WP CLI](#wp-cli)
+    * [Context Menu](#context-menu)
 
 ---
 
