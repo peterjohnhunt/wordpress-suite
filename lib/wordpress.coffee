@@ -63,6 +63,7 @@ module.exports = class Wordpress
         @subscriptions.add @debug.onDidResume => @addClass('watching')
 
         @wpcli = new WPCLI(@root)
+        @subscriptions.add @wpcli.onDidWarning (message) => atom.notifications.addWarning(@name + ": CLI Warning", {dismissable: false, detail: message})
         @subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: true, detail: message})
         @subscriptions.add @wpcli.onDidExport => atom.notifications.addSuccess(@name + ": Database Exported")
 

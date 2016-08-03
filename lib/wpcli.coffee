@@ -12,7 +12,7 @@ module.exports = class WPCLI
 
         command 'wp', (err,exists) =>
             if not exists
-                @emitter.emit 'error', 'WP CLI not installed'
+                @emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
             else
                 @initialize()
 
@@ -72,6 +72,9 @@ module.exports = class WPCLI
 
     onDidPlugin: (callback) ->
         @emitter.on('plugin', callback)
+
+    onDidWarning: (callback) ->
+        @emitter.on('warning', callback)
 
     onDidError: (callback) ->
         @emitter.on('error', callback)
