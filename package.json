@@ -1,7 +1,7 @@
 {
   "name": "wordpress-suite",
   "main": "./lib/wordpress-suite",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Atom Wordpress Manager",
   "keywords": [],
   "repository": "https://github.com/peterjohnhunt/wordpress-suite",
