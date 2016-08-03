@@ -2,6 +2,7 @@
 
 **Wordpress Suite** is an ever expanding suite of wordpress tools, accessible right from atom's interface!
 
+## Summary
 * [Installation](#installation)
 * [Features](#features)
     * [General](#general-features)
@@ -12,7 +13,6 @@
 ---
 
 ## Installation
-
 Atom Package: https://atom.io/packages/wordpress-suite
 
 ```bash
