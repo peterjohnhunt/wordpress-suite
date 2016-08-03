@@ -2,13 +2,24 @@
 
 **Wordpress Suite** is an ever expanding suite of wordpress tools, accessible right from atom's interface!
 
+* [Installation](#installation)
+* [Features](#features)
+    * [General](#general-features)
+    * [Debug Watcher](#debug-watcher)
+    * [WP CLI](#wp-cli)
+
 ---
 
-## Features
+## Installation
 
-* [General](#general-features)
-* [Debug Watcher](#debug-watcher)
-* [WP CLI](#wp-cli)
+Atom Package: https://atom.io/packages/wordpress-suite
+
+```bash
+apm install wordpress-suite
+```
+Or Settings/Preferences ➔ Packages ➔ Search for `wordpress-suite`
+
+## Features
 
 ### General Features
 
