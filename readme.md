@@ -61,7 +61,6 @@ If there is a reoccurring notification that you would like to mute, when it pops
 #### Clear Muted Notifications
 Under the context menu, you can clear all muted notifications.
 
-
 ---
 
 ### WP CLI
@@ -90,6 +89,8 @@ When right clicking a wordpress project in the sidebar, you'll have a "Wordpress
 
 ![Context Menu](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/context.gif "Context Menu")
 
+---
+
 ## Settings
 
 ### Enable / Disable Notification Types
@@ -97,8 +98,14 @@ Notification types can be enabled and disabled via the package settings
 
 ![Notification Settings](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/notification_settings.gif "Notification Settings")
 
+---
+
 ## Release Notes
 For release notes and version history, view the [Change Log](https://github.com/peterjohnhunt/wordpress-suite/blob/master/changelog.md#change-log).
 
+---
+
 ## Issues / Additions
 For any issues, additions or bugs, feel free to [open an issue](https://github.com/peterjohnhunt/wordpress-suite/issues/new) and include stack trace if applicable!
+
+---
