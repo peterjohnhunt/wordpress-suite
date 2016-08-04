@@ -1,0 +1,25 @@
+atom-notification{
+    .btn-toolbar{
+        a.btn{
+            &:after{
+                font-family: 'Octicons Regular';
+                font-weight: normal;
+                font-style: normal;
+                font-size: 14px;
+            }
+            &.btn-right{
+                float:right;
+
+                + .btn-right{
+                    margin-right:5px;
+                }
+            }
+            &.btn-ignore:after{
+                content: "\f080";
+            }
+            &.btn-dismiss:after{
+                content: "\f081";
+            }
+        }
+    }
+}

@@ -37,6 +37,10 @@ module.exports = class Wordpress
                 text: 'Open',
                 className: 'btn-open',
                 onDidClick: => @debug.open()
+            },
+            {
+                className: 'btn-ignore btn-right',
+                onDidClick: (event) => @ignore(event)
             }
         ]
 
@@ -47,6 +51,7 @@ module.exports = class Wordpress
         @subscriptions.add @debug.onDidMessageInfo (message) => @messages.push(atom.notifications.addInfo(@name, { dismissable: true, detail: message, buttons: buttons }))
         @subscriptions.add @debug.onDidMessageNotice (message) => @messages.push(atom.notifications.addWarning(@name + ' | Notice', { dismissable: false, detail: message, buttons: buttons }))
         @subscriptions.add @debug.onDidMessageDeprecation (message) => @messages.push(atom.notifications.addWarning(@name + ' | Deprecation', { dismissable: false, detail: message, buttons: buttons }))
+        @subscriptions.add @debug.onDidMessageWarning (message) => @messages.push(atom.notifications.addWarning(@name + ' | Warning', { dismissable: false, detail: message, buttons: buttons }))
         @subscriptions.add @debug.onDidMessageError (message) => @messages.push(atom.notifications.addError(@name + ' | Error', { dismissable: true, detail: message, icon: 'bug', buttons: buttons }))
 
         @subscriptions.add atom.commands.add '.project-root.wordpress', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
@@ -64,7 +69,7 @@ module.exports = class Wordpress
 
         @wpcli = new WPCLI(@root)
         @subscriptions.add @wpcli.onDidWarning (message) => atom.notifications.addWarning(@name + ": CLI Warning", {dismissable: false, detail: message})
-        @subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: true, detail: message})
+        @subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: false, detail: message})
         @subscriptions.add @wpcli.onDidExport => atom.notifications.addSuccess(@name + ": Database Exported")
 
         @subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:export': => if @isSelected() then @wpcli.export()
@@ -124,6 +129,15 @@ module.exports = class Wordpress
             for path in @paths
                 if @treeView.entryForPath(path).classList.contains('selected')
                     return true
+
+    getNotification: (event) ->
+        return event.target.parentElement.parentElement.parentElement.parentElement.model
+
+    ignore: (notification) ->
+        notification = @getNotification(notification)
+        message = notification.options.detail
+        @debug.ignore(message)
+        notification.dismiss()
 
     dispose: ->
         @debug?.dispose()

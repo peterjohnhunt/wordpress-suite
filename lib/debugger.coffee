@@ -17,7 +17,8 @@ module.exports = class Debugger
         @log = @root.getSubdirectory('wp-content').getFile('debug.log')
         @log.history = ''
         @log.recent = []
-        @log.watching = true;
+        @log.watching = true
+        @log.ignored = []
 
         @log.create().then (created) =>
             if not created
@@ -46,8 +47,13 @@ module.exports = class Debugger
         @log.watching = true;
         @emitter.emit 'resume'
 
+    ignore: (message) ->
+        @log.ignored.push(message)
+
     change: ->
         return unless @log.watching?
+
+        type = 'info'
 
         @log.read().then (contents) =>
             if contents.length >= @log.history.length
@@ -55,20 +61,20 @@ module.exports = class Debugger
                 for message in messages
                     if message isnt ''
                         if message.indexOf('PHP Parse error:') == 0
-                            if atom.config.get('wordpress-suite.notifications.error')
-                                message = message.replace(/PHP Parse error:\s+/,'')
-                                @emitter.emit 'message:error', message
+                            message = message.replace(/PHP Parse error:\s+/,'')
+                            type = 'error'
                         else if message.indexOf('PHP Notice:') == 0
-                            if atom.config.get('wordpress-suite.notifications.notice')
-                                message = message.replace(/PHP Notice:\s+/,'')
-                                @emitter.emit 'message:notice', message
+                            message = message.replace(/PHP Notice:\s+/,'')
+                            type = 'notice'
                         else if message.indexOf('PHP Deprecated:') == 0
-                            if atom.config.get('wordpress-suite.notifications.deprecation')
-                                message = message.replace(/PHP Deprecated:\s+/,'')
-                                @emitter.emit 'message:deprecation', message
-                        else
-                            if atom.config.get('wordpress-suite.notifications.info')
-                                @emitter.emit 'message:info', message
+                            message = message.replace(/PHP Deprecated:\s+/,'')
+                            type = 'deprecation'
+                        else if message.indexOf('PHP Warning:') == 0
+                            message = message.replace(/PHP Warning:\s+/,'')
+                            type = 'warning'
+
+                        if atom.config.get('wordpress-suite.notifications.'+type) && message not in @log.ignored
+                            @emitter.emit 'message:'+type, message
             @log.history = contents
 
     dispose: ->
@@ -99,6 +105,9 @@ module.exports = class Debugger
 
     onDidMessageDeprecation: (callback) ->
         @emitter.on('message:deprecation', callback)
+
+    onDidMessageWarning: (callback) ->
+        @emitter.on('message:warning', callback)
 
     onDidMessageError: (callback) ->
         @emitter.on('message:error', callback)

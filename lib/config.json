@@ -24,6 +24,13 @@
                 "default": "true",
                 "order": 3
             },
+            "warning": {
+                "title": "Warnings",
+                "description": "Show warning messages",
+                "type": "boolean",
+                "default": "true",
+                "order": 3
+            },
             "error": {
                 "title": "Errors",
                 "description": "Show error messages",
