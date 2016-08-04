@@ -19,6 +19,10 @@
                 {
                     'label': 'Open Debug Log',
                     'command': 'wordpress-suite:debug:open'
+                },
+                {
+                    'label': 'Clear Ignored',
+                    'command': 'wordpress-suite:debug:clearIgnored'
                 }
             ]
         }

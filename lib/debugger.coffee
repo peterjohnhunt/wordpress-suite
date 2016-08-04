@@ -49,6 +49,11 @@ module.exports = class Debugger
 
     ignore: (message) ->
         @log.ignored.push(message)
+        @emitter.emit 'message:ignored'
+
+    clearIgnored: ->
+        @log.ignored = []
+        @emitter.emit 'clear:ignored'
 
     change: ->
         return unless @log.watching?
@@ -114,6 +119,12 @@ module.exports = class Debugger
 
     onDidMessageNone: (callback) ->
         @emitter.on('message:none', callback)
+
+    onDidMessageIgnored: (callback) ->
+        @emitter.on('message:ignored', callback)
+
+    onDidClearIgnored: (callback) ->
+        @emitter.on('clear:ignored', callback)
 
     onDidDispose: (callback) ->
         @emitter.on('dispose', callback)
