@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.3.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.0...v0.3.1) | 2016-08-04
+### Updated
+ - Readme
+
 ## [v0.3.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.2.0...v0.3.0) | 2016-08-04
 ### Added
 - Change log
