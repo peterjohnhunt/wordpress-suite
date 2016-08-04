@@ -102,7 +102,6 @@ module.exports = class Wordpress
                 onDidClick: (event) =>
                     notification = event.target.parentElement.parentElement.parentElement.parentElement.model
                     message = notification.getDetail()
-                    console.log notification.dismiss
                     notification.dismiss()
                     @debug.ignore(message)
             }
@@ -146,6 +145,8 @@ module.exports = class Wordpress
             message.dismissed = false
             @notifications.notificationsElement.appendChild(el)
             message.setDisplayed(true)
+            if not notification.isDismissable()
+                @notification.autohide()
 
     convertNotification: (notification) ->
         element = atom.views.getView(notification)

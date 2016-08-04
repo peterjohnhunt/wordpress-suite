@@ -1,6 +1,11 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.3.2](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.1...v0.3.2) | 2016-08-04
+### Fixed
+ - Unneeded console log
+ - When reshowing notifications autohide if applicable
+
 ## [v0.3.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.0...v0.3.1) | 2016-08-04
 ### Updated
  - Readme
