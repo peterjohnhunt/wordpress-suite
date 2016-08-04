@@ -71,8 +71,8 @@ In the event that Wordpress prints an error and references where the error occur
 ### WP CLI
 If WP-CLI is installed locally, additional context menu items will be available to manage and manipulate your Wordpress projects.
 
-### Site Name
-This will automatically retrieve the site name stored in the Wordpress database which is then used in notification titles.
+#### Site Name
+Automatically retrieve the site name stored in the Wordpress database and use it in notification titles.
 
 #### Export Database
 This will automatically generate a "db" folder in the root of the Wordpress project, it will then export the database to that db folder naming it "latest-db.sql" pulling from the credentials set in `wp-config.php`.
