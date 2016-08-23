@@ -13,8 +13,8 @@
                     'command': 'wordpress-suite:notifications:show'
                 },
                 {
-                    'label': 'Clear Notifications',
-                    'command': 'wordpress-suite:notifications:clear'
+                    'label': 'Clear Debug Log',
+                    'command': 'wordpress-suite:debug:clear'
                 },
                 {
                     'label': 'Open Debug Log',

@@ -1,5 +1,6 @@
 Debugger = require './debugger'
 WPCLI = require './wpcli'
+path = require 'path'
 {requirePackages} = require 'atom-utils'
 {CompositeDisposable} = require 'atom'
 
@@ -7,13 +8,12 @@ module.exports = class Wordpress
     constructor: (directory) ->
         @root          = directory
         @name          = @root.getBaseName()
-        @paths         = []
+        @sitePaths     = []
         @messages      = []
         @subscriptions = new CompositeDisposable
 
         @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:root:open': => if @isSelected() then @openProjectRoot()
         @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
-        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:notifications:clear': => if @isSelected() then @clearNotifications()
 
         atom.notifications.addSuccess(@name + ': Initialized' )
 
@@ -36,13 +36,14 @@ module.exports = class Wordpress
         @subscriptions.add @debug.onDidMessageError (message) => @addNotification(message, 'Error', false)
         @subscriptions.add @debug.onDidMessageIgnored => atom.notifications.addSuccess(@name + ": Message Ignored")
         @subscriptions.add @debug.onDidClearIgnored => atom.notifications.addSuccess(@name + ": Ignore Cleared")
-        @subscriptions.add @debug.onDidClear => @clearNotifications()
+        @subscriptions.add @debug.onDidClear => @clearNotifications() and atom.notifications.addSuccess(@name + ": Cleared")
         @subscriptions.add @debug.onDidInitialize => @addClass('watching')
         @subscriptions.add @debug.onDidUpdate => if @debug.log.watching then @addClass('watching')
         @subscriptions.add @debug.onDidDispose => @removeClass('watching')
         @subscriptions.add @debug.onDidPause => @removeClass('watching')
         @subscriptions.add @debug.onDidResume => @addClass('watching')
         @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
+        @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:clear': => if @isSelected() then @debug.clear()
         @subscriptions.add atom.commands.add '.project-root.wordpress.watching > .header', 'wordpress-suite:debug:pause': => if @isSelected() then @debug.pause()
         @subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching) > .header', 'wordpress-suite:debug:resume': => if @isSelected() then @debug.resume()
         @subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:clearIgnored': => if @isSelected() then @debug.clearIgnored()
@@ -58,44 +59,48 @@ module.exports = class Wordpress
 
     isSelected: ->
         if @treeView
-            for path in @paths
-                if @treeView.entryForPath(path).classList.contains('selected')
+            for sitePath in @sitePaths
+                if @treeView.entryForPath(sitePath).classList.contains('selected')
                     return true
 
-    isRelatedPath: (path) ->
-        return @root.contains(path) or @root.getPath() == path
+    isRelatedPath: (sitePath) ->
+        return @root.contains(sitePath) or @root.getPath() == sitePath
 
-    addRelatedPath: (path) ->
-        @paths.push(path)
+    addRelatedPath: (sitePath) ->
+        @sitePaths.push(sitePath)
 
-    removeRelatedPath: (path) ->
-        index = @paths.indexOf(path)
-        @paths.splice(index,1)
+    removeRelatedPath: (sitePath) ->
+        index = @sitePaths.indexOf(sitePath)
+        @sitePaths.splice(index,1)
 
     openProjectRoot: ->
         atom.project.addPath(@root.getPath())
 
     addClass: (classname) ->
-        for path in @paths
+        for sitePath in @sitePaths
             if @treeView
-                @treeView.entryForPath(path)?.classList.add(classname)
+                @treeView.entryForPath(sitePath)?.classList.add(classname)
 
     removeClass: (classname) ->
-        for path in @paths
+        for sitePath in @sitePaths
             if @treeView
-                @treeView.entryForPath(path)?.classList.remove(classname)
+                @treeView.entryForPath(sitePath)?.classList.remove(classname)
 
     addNotification: (message, type, dismissible) ->
         buttons = [
             {
                 text: 'Clear',
                 className: 'btn-clear',
-                onDidClick: => @debug.clear()
+                onDidClick: =>
+                    @clearNotifications()
+                    @debug.clear()
             },
             {
                 text: 'Open',
                 className: 'btn-open',
-                onDidClick: => @debug.open()
+                onDidClick: =>
+                    @clearNotifications()
+                    @debug.open()
             },
             {
                 className: 'btn-ignore btn-right',
@@ -131,7 +136,6 @@ module.exports = class Wordpress
             if notification.isDismissable() and not notification.isDismissed()
                 notification.dismiss()
         @messages = []
-        atom.notifications.addSuccess(@name + ": Cleared")
 
     showNotifications: ->
         if @messages.length == 0
@@ -161,11 +165,11 @@ module.exports = class Wordpress
     convertLink: (rawLink) ->
         link = document.createElement('a')
         link.innerText = path.basename(rawLink[1]) + ' on line ' + rawLink[2]
-        link.dataset.path = rawLink[1]
+        link.dataset.sitePath = rawLink[1]
         link.dataset.line = rawLink[2]
         link.addEventListener 'click', (event) ->
             event.preventDefault()
-            atom.workspace.open(@.dataset.path, {pending: false, initialLine: parseInt(@.dataset.line), searchAllPanes:true})
+            atom.workspace.open(@.dataset.sitePath, {pending: false, initialLine: parseInt(@.dataset.line), searchAllPanes:true})
         return link
 
     dispose: ->

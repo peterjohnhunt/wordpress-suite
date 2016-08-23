@@ -25,50 +25,50 @@ module.exports = wordpressSuite =
     initialize: ->
         # Variables
         @sites = [];
-        @paths = atom.project.getPaths();
+        @projectPaths = atom.project.getPaths();
 
         # Subscriptions
         @subscriptions = new CompositeDisposable
-        @subscriptions.add atom.project.onDidChangePaths (paths) => @foldersChanged(paths)
+        @subscriptions.add atom.project.onDidChangePaths (projectPaths) => @foldersChanged(projectPaths)
 
         # Initial Setup
-        @foldersAdded(@paths)
+        @foldersAdded(@projectPaths)
 
-    folderGetProjectId: (path) ->
+    folderGetProjectId: (projectPath) ->
         for site, index in @sites
-            if site.isRelatedPath(path)
+            if site.isRelatedPath(projectPath)
                 return index
         return false
 
-    foldersChanged: (paths) ->
-        if paths.length > @paths.length
-            addedPaths = paths.difference(@paths);
+    foldersChanged: (projectPaths) ->
+        if projectPaths.length > @projectPaths.length
+            addedPaths = projectPaths.difference(@projectPaths);
             @foldersAdded(addedPaths)
         else
-            removedPaths = @paths.difference(paths);
+            removedPaths = @projectPaths.difference(projectPaths);
             @foldersRemoved(removedPaths)
-        @paths = paths
+        @projectPaths = projectPaths
 
-    foldersAdded: (paths) ->
-        for path in paths
-            site_id = @folderGetProjectId(path)
+    foldersAdded: (projectPaths) ->
+        for projectPath in projectPaths
+            site_id = @folderGetProjectId(projectPath)
             if site_id is false
-                root = new Directory(path.split('wp-content', 1)[0])
+                root = new Directory(projectPath.split('wp-content', 1)[0])
                 if root.getSubdirectory('wp-content').existsSync()
                     site = new Wordpress(root)
-                    site.addRelatedPath(path)
+                    site.addRelatedPath(projectPath)
                     @sites.push(site)
             else
                 site = @sites[site_id]
-                site.addRelatedPath(path)
+                site.addRelatedPath(projectPath)
 
-    foldersRemoved: (paths) ->
-        for path in paths
-            site_id = @folderGetProjectId(path)
+    foldersRemoved: (projectPaths) ->
+        for projectPath in projectPaths
+            site_id = @folderGetProjectId(projectPath)
             if site_id isnt false
                 site = @sites[site_id]
-                site.removeRelatedPath(path)
-                if site.paths.length is 0
+                site.removeRelatedPath(projectPath)
+                if site.projectPaths.length is 0
                     @sites[site_id].dispose()
                     @sites.splice(site_id,1);
 
