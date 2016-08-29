@@ -68,7 +68,7 @@ module.exports = wordpressSuite =
             if site_id isnt false
                 site = @sites[site_id]
                 site.removeRelatedPath(projectPath)
-                if site.projectPaths.length is 0
+                if site.sitePaths.length is 0
                     @sites[site_id].dispose()
                     @sites.splice(site_id,1);
 
