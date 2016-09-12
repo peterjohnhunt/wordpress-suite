@@ -1,6 +1,19 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.3.7](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.6...v0.3.7) | 2016-09-12
+### Fixed
+ - Paused Watching Issue
+ - Wrong Message Types
+### Added
+ - Auto Dismiss Settings
+
+## [v0.3.6](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.5...v0.3.6) | 2016-08-29
+### Fixed
+ - Variable Naming Issue
+ - Require Path
+ - Remove Notifications On Log Cleared
+
 ## [v0.3.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.4...v0.3.5) | 2016-08-04
 ### Updated
  - Readme
