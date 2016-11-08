@@ -1,24 +1,29 @@
 {
   "name": "wordpress-suite",
   "main": "./lib/wordpress-suite",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Wordpress Suite is an ever expanding suite of Wordpress tools, accessible right from atom's interface!",
-  "keywords": ["wordpress","notifications","debug","peterjohnhunt"],
+  "keywords": [
+    "wordpress",
+    "notifications",
+    "debug",
+    "peterjohnhunt"
+  ],
   "repository": "https://github.com/peterjohnhunt/wordpress-suite",
   "license": "MIT",
   "engines": {
-	"atom": ">=1.0.0 <2.0.0"
+    "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-	"atom-utils": "^0.9.2",
-	"command-exists": "^1.0.2",
-	"wp-cli": "0.0.5"
+    "atom-utils": "^0.9.2",
+    "command-exists": "^1.0.2",
+    "wp-cli": "0.0.5"
   },
   "consumedServices": {
-	"autoreload": {
-	  "versions": {
-		"^0.0.1": "consumeAutoreload"
-	  }
-	}
+    "autoreload": {
+      "versions": {
+        "^0.0.1": "consumeAutoreload"
+      }
+    }
   }
 }
