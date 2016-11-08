@@ -149,14 +149,14 @@ module.exports = class Wordpress
 			message.dismissed = false
 			@notifications.notificationsElement.appendChild(el)
 			message.setDisplayed(true)
-			if not notification.isDismissable()
-				@notification.autohide()
+			if not message.isDismissable()
+				message.autohide()
 
 	convertNotification: (notification) ->
 		element = atom.views.getView(notification)
 		lines = element.querySelectorAll('.detail-content .line')
 		for line in lines
-			link = line.innerText.match(/\s(\/.*\.php) on line (\d+)/)
+			link = line.innerText.match(/\s+in\s(\/.*\.php) on line (\d+)/)
 			if link
 				line.innerText = link.input.replace(link[0], ' ')
 				link = @convertLink(link)
@@ -164,12 +164,12 @@ module.exports = class Wordpress
 
 	convertLink: (rawLink) ->
 		link = document.createElement('a')
-		link.innerText = path.basename(rawLink[1]) + ' on line ' + rawLink[2]
+		link.innerText = 'in ' + path.basename(rawLink[1]) + ' on line ' + rawLink[2]
 		link.dataset.sitePath = rawLink[1]
 		link.dataset.line = rawLink[2]
 		link.addEventListener 'click', (event) ->
 			event.preventDefault()
-			atom.workspace.open(@.dataset.sitePath, {pending: false, initialLine: parseInt(@.dataset.line), searchAllPanes:true})
+			atom.workspace.open(@.dataset.sitePath, {pending: false, initialLine: (parseInt(@.dataset.line) - 1), searchAllPanes:true})
 		return link
 
 	dispose: ->

@@ -1,62 +1,61 @@
-# See https://atom.io/docs/latest/hacking-atom-package-word-count#menus for more details
 'context-menu':
-    '.project-root.wordpress > .header': [
-        {
-            'label': 'Wordpress',
-            'submenu': [
-                {
-                    'label': 'Add Project Root',
-                    'command': 'wordpress-suite:root:open'
-                },
-                {
-                    'label': 'Show Notifications',
-                    'command': 'wordpress-suite:notifications:show'
-                },
-                {
-                    'label': 'Clear Debug Log',
-                    'command': 'wordpress-suite:debug:clear'
-                },
-                {
-                    'label': 'Open Debug Log',
-                    'command': 'wordpress-suite:debug:open'
-                },
-                {
-                    'label': 'Clear Ignored',
-                    'command': 'wordpress-suite:debug:clearIgnored'
-                }
-            ]
-        }
-    ],
-    '.project-root.wordpress.watching > .header': [
-        {
-            'label': 'Wordpress',
-            'submenu': [
-                {
-                    'label': 'Pause Watching',
-                    'command': 'wordpress-suite:debug:pause'
-                }
-            ]
-        }
-    ],
-    '.project-root.wordpress:not(.watching) > .header': [
-        {
-            'label': 'Wordpress',
-            'submenu': [
-                {
-                    'label': 'Resume Watching',
-                    'command': 'wordpress-suite:debug:resume'
-                }
-            ]
-        }
-    ],
-    '.project-root.wordpress.cli > .header': [
-        {
-            'label': 'Wordpress',
-            'submenu': [
-                {
-                    'label': 'Export Database',
-                    'command': 'wordpress-suite:cli:database:export'
-                }
-            ]
-        }
-    ]
+	'.project-root.wordpress > .header': [
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Add Project Root',
+					'command': 'wordpress-suite:root:open'
+				},
+				{
+					'label': 'Show Notifications',
+					'command': 'wordpress-suite:notifications:show'
+				},
+				{
+					'label': 'Clear Debug Log',
+					'command': 'wordpress-suite:debug:clear'
+				},
+				{
+					'label': 'Open Debug Log',
+					'command': 'wordpress-suite:debug:open'
+				},
+				{
+					'label': 'Clear Ignored',
+					'command': 'wordpress-suite:debug:clearIgnored'
+				}
+			]
+		}
+	],
+	'.project-root.wordpress.watching > .header': [
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Pause Watching',
+					'command': 'wordpress-suite:debug:pause'
+				}
+			]
+		}
+	],
+	'.project-root.wordpress:not(.watching) > .header': [
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Resume Watching',
+					'command': 'wordpress-suite:debug:resume'
+				}
+			]
+		}
+	],
+	'.project-root.wordpress.cli > .header': [
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Export Database',
+					'command': 'wordpress-suite:cli:database:export'
+				}
+			]
+		}
+	]

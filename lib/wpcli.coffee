@@ -3,81 +3,69 @@ command = require 'command-exists'
 {CompositeDisposable, Emitter} = require 'atom'
 
 module.exports = class WPCLI
-    constructor: (directory) ->
-        @emitter = new Emitter
-        @root = directory
+	constructor: (directory) ->
+		@emitter = new Emitter
+		@root = directory
 
-        @subscriptions = new CompositeDisposable
-        @subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
+		@subscriptions = new CompositeDisposable
+		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
-        command 'wp', (err,exists) =>
-            if not exists
-                @emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
-            else
-                @initialize()
+		command 'wp', (err,exists) =>
+			if not exists
+				@emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
+			else
+				@initialize()
 
-    initialize: ->
-        WP.discover { path: @root.getPath() }, (wp) =>
-            @wp = wp
+	initialize: ->
+		WP.discover { path: @root.getPath() }, (wp) =>
+			@wp = wp
 
-            @wp.option.get 'blogname', (err,data) =>
-                if err
-                    @emitter.emit 'error', err
-                else
-                    @emitter.emit 'name', data
+			@wp.option.get 'blogname', (err,data) =>
+				if err
+					@emitter.emit 'error', err
+				else
+					@emitter.emit 'name', data
 
-            @wp.option.get 'home', (err,data) =>
-                if err
-                    @emitter.emit 'error', err
-                else
-                    @emitter.emit 'url', data
+			@emitter.emit 'initialize'
 
-            @wp.plugin.list (err,data) =>
-                if err
-                    @emitter.emit 'error', err
-                else
-                    @emitter.emit 'plugin', data
+	export: ->
+		exportPath = @root.getSubdirectory('db')
+		exportPath.create().then (created) =>
+			dbpath = exportPath.getPath() + '/latest-db.sql'
+			@wp.db.export dbpath, (err,data) =>
+				if err
+					@emitter.emit 'error', err
+				else
+					@emitter.emit 'export', data
 
-            @emitter.emit 'initialize'
+	dispose: ->
+		@emitter?.emit 'dispose'
+		@emitter?.dispose()
+		@subscriptions?.dispose()
 
-    export: ->
-        exportPath = @root.getSubdirectory('db')
-        exportPath.create().then (created) =>
-            dbpath = exportPath.getPath() + '/latest-db.sql'
-            @wp.db.export dbpath, (err,data) =>
-                if err
-                    @emitter.emit 'error', err
-                else
-                    @emitter.emit 'export', data
+	onDidInitialize: (callback) ->
+		@emitter.on('initialize', callback)
 
-    dispose: ->
-        @emitter?.emit 'dispose'
-        @emitter?.dispose()
-        @subscriptions?.dispose()
+	onDidUpdate: (callback) ->
+		@emitter.on('update', callback)
 
-    onDidInitialize: (callback) ->
-        @emitter.on('initialize', callback)
+	onDidDispose: (callback) ->
+		@emitter.on('dispose', callback)
 
-    onDidUpdate: (callback) ->
-        @emitter.on('update', callback)
+	onDidName: (callback) ->
+		@emitter.on('name', callback)
 
-    onDidDispose: (callback) ->
-        @emitter.on('dispose', callback)
+	onDidURL: (callback) ->
+		@emitter.on('url', callback)
 
-    onDidName: (callback) ->
-        @emitter.on('name', callback)
+	onDidPlugin: (callback) ->
+		@emitter.on('plugin', callback)
 
-    onDidURL: (callback) ->
-        @emitter.on('url', callback)
+	onDidWarning: (callback) ->
+		@emitter.on('warning', callback)
 
-    onDidPlugin: (callback) ->
-        @emitter.on('plugin', callback)
+	onDidError: (callback) ->
+		@emitter.on('error', callback)
 
-    onDidWarning: (callback) ->
-        @emitter.on('warning', callback)
-
-    onDidError: (callback) ->
-        @emitter.on('error', callback)
-
-    onDidExport: (callback) ->
-        @emitter.on('export', callback)
+	onDidExport: (callback) ->
+		@emitter.on('export', callback)

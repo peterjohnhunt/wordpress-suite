@@ -1,10 +1,16 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.3.8](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.7...v0.3.8) | 2016-11-07
+### Fixed
+ - Tab Spacing
+ - Syntax Issue (Bug #1)
+
 ## [v0.3.7](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.6...v0.3.7) | 2016-09-12
 ### Fixed
  - Paused Watching Issue
  - Wrong Message Types
+
 ### Added
  - Auto Dismiss Settings
 
