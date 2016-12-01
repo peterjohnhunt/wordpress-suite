@@ -4,12 +4,12 @@
 **Wordpress Suite** is an ever expanding suite of Wordpress tools, accessible right from atom's interface!
 * [Installation](#installation)
 * [Features](#features)
-    * [General](#general-features)
-    * [Debug Watcher](#debug-watcher)
-    * [WP CLI](#wp-cli)
-    * [Context Menu](#context-menu)
+	* [General](#general-features)
+	* [Debug Watcher](#debug-watcher)
+	* [WP CLI](#wp-cli)
+	* [Context Menu](#context-menu)
 * [Settings](#settings)
-    * [Enable / Disable Notification Types](#enable-disable-notification-types)
+	* [Enable / Disable Notification Types](#enable-disable-notification-types)
 * [Release Notes](#release-notes)
 * [Issues / Additions](#issues-additions)
 
@@ -74,8 +74,14 @@ If WP-CLI is installed locally, additional context menu items will be available 
 #### Site Name
 Automatically retrieve the site name stored in the Wordpress database and use it in notification titles.
 
+#### Path Config
+Automatically retrieve the Wordpress path from the local wp-cli.yml if it exists.
+
 #### Export Database
 This will automatically generate a "db" folder in the root of the Wordpress project, it will then export the database to that db folder naming it "latest-db.sql" pulling from the credentials set in `wp-config.php`.
+
+#### Import Database
+This will automatically export a backup of the database and then import "latest-db.sql" pulling from the credentials set in `wp-config.php`.
 
 ---
 
@@ -91,6 +97,7 @@ When right clicking a Wordpress project in the sidebar, you'll have a "Wordpress
 * Pause Watching
 * Resume Watching
 * Export Database
+* Import Database
 
 ![Context Menu](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/context.gif "Context Menu")
 
