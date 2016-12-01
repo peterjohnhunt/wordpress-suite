@@ -1,10 +1,15 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.4.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.8...v0.4.0) | 2016-12-01
+### Added
+ - WP-CLI Config ([Enhancement #3](https://github.com/peterjohnhunt/wordpress-suite/issues/3))
+ - WP-CLI Import Database
+
 ## [v0.3.8](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.7...v0.3.8) | 2016-11-07
 ### Fixed
  - Tab Spacing
- - Syntax Issue (Bug #1)
+ - Syntax Issue ([Bug #1](https://github.com/peterjohnhunt/wordpress-suite/issues/1))
 
 ## [v0.3.7](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.6...v0.3.7) | 2016-09-12
 ### Fixed
@@ -23,7 +28,7 @@ All notable changes or release notes for this project will be documented in this
 ## [v0.3.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.4...v0.3.5) | 2016-08-04
 ### Updated
  - Readme
- - Package description
+ - Package Description
 
 ## [v0.3.3 - v0.3.4](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.2...v0.3.4) | 2016-08-04
 ### Updated

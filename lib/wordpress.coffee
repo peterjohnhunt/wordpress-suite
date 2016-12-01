@@ -52,10 +52,12 @@ module.exports = class Wordpress
 		@subscriptions.add @wpcli.onDidWarning (message) => atom.notifications.addWarning(@name + ": CLI Warning", {dismissable: false, detail: message})
 		@subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: false, detail: message})
 		@subscriptions.add @wpcli.onDidExport => atom.notifications.addSuccess(@name + ": Database Exported")
-		@subscriptions.add @wpcli.onDidInitialize => @addClass('cli')
+		@subscriptions.add @wpcli.onDidImport => atom.notifications.addSuccess(@name + ": Database Imported")
+		@subscriptions.add @wpcli.onDidDiscover => @addClass('cli')
 		@subscriptions.add @wpcli.onDidUpdate => if @wpcli.wp then @addClass('cli')
 		@subscriptions.add @wpcli.onDidName (name) => @name = name
 		@subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:export': => if @isSelected() then @wpcli.export()
+		@subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:import': => if @isSelected() then @wpcli.import()
 
 	isSelected: ->
 		if @treeView

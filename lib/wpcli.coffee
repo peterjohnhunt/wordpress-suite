@@ -1,4 +1,5 @@
 WP = require 'wp-cli'
+yml = require 'yamljs'
 command = require 'command-exists'
 {CompositeDisposable, Emitter} = require 'atom'
 
@@ -6,6 +7,7 @@ module.exports = class WPCLI
 	constructor: (directory) ->
 		@emitter = new Emitter
 		@root = directory
+		@config = @root.getPath()
 
 		@subscriptions = new CompositeDisposable
 		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
@@ -17,7 +19,23 @@ module.exports = class WPCLI
 				@initialize()
 
 	initialize: ->
-		WP.discover { path: @root.getPath() }, (wp) =>
+		config_path = @root.getFile('wp-cli.yml')
+		config_path.exists().then (exists) =>
+			if exists
+				config_path.read().then (contents) =>
+					if contents
+						parsed = yml.parse(contents)
+						if parsed.path
+							@config = @root.getSubdirectory(parsed.path).getPath()
+					@discover()
+			else
+				@discover()
+
+		@emitter.emit 'initialize'
+
+	discover: ->
+		console.log @config
+		WP.discover { path: @config }, (wp) =>
 			@wp = wp
 
 			@wp.option.get 'blogname', (err,data) =>
@@ -26,17 +44,32 @@ module.exports = class WPCLI
 				else
 					@emitter.emit 'name', data
 
-			@emitter.emit 'initialize'
+			@emitter.emit 'discover'
 
-	export: ->
+	export: (dbname = 'latest-db.sql') ->
 		exportPath = @root.getSubdirectory('db')
 		exportPath.create().then (created) =>
-			dbpath = exportPath.getPath() + '/latest-db.sql'
+			dbpath = exportPath.getPath() + '/' + dbname
 			@wp.db.export dbpath, (err,data) =>
 				if err
 					@emitter.emit 'error', err
 				else
 					@emitter.emit 'export', data
+
+	import: (dbname = 'latest-db.sql') ->
+		today = new Date
+		timestamp = "backup-#{today.getFullYear()}-#{(today.getMonth()+1)}-#{today.getDate()}-#{today.getHours()}-#{today.getMinutes()}-#{today.getSeconds()}.sql"
+		@export(timestamp)
+		importPath = @root.getSubdirectory('db').getPath() + '/' + dbname
+		importPath.exists().then (exists) =>
+			if exists
+				@wp.db.import importPath, (err,data) =>
+					if err
+						@emitter.emit 'error', err
+					else
+						@emitter.emit 'import', data
+			else
+				@emitter.emit 'error', 'No Database Found'
 
 	dispose: ->
 		@emitter?.emit 'dispose'
@@ -45,6 +78,9 @@ module.exports = class WPCLI
 
 	onDidInitialize: (callback) ->
 		@emitter.on('initialize', callback)
+
+	onDidDiscover: (callback) ->
+		@emitter.on('discover', callback)
 
 	onDidUpdate: (callback) ->
 		@emitter.on('update', callback)
@@ -69,3 +105,6 @@ module.exports = class WPCLI
 
 	onDidExport: (callback) ->
 		@emitter.on('export', callback)
+
+	onDidImport: (callback) ->
+		@emitter.on('import', callback)

@@ -55,6 +55,10 @@
 				{
 					'label': 'Export Database',
 					'command': 'wordpress-suite:cli:database:export'
+				},
+				{
+					'label': 'Import Database',
+					'command': 'wordpress-suite:cli:database:import'
 				}
 			]
 		}
