@@ -1,32 +1,32 @@
 {
   "name": "wordpress-suite",
   "main": "./lib/wordpress-suite",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Debug Watcher, WP-CLI Commands, Quick Tools.",
   "keywords": [
-	"wordpress",
-	"wp",
-	"notifications",
-	"debug",
-	"wp-cli",
-	"peterjohnhunt"
+    "wordpress",
+    "wp",
+    "notifications",
+    "debug",
+    "wp-cli",
+    "peterjohnhunt"
   ],
   "repository": "https://github.com/peterjohnhunt/wordpress-suite",
   "license": "MIT",
   "engines": {
-	"atom": ">=1.0.0 <2.0.0"
+    "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-	"atom-utils": "^0.9.2",
-	"command-exists": "^1.0.2",
-	"wp-cli": "0.0.5",
-	"yamljs": "^0.2.8"
+    "atom-utils": "^0.9.2",
+    "command-exists": "^1.0.2",
+    "wp-cli": "0.0.5",
+    "yamljs": "^0.2.8"
   },
   "consumedServices": {
-	"autoreload": {
-	  "versions": {
-		"^0.0.1": "consumeAutoreload"
-	  }
-	}
+    "autoreload": {
+      "versions": {
+        "^0.0.1": "consumeAutoreload"
+      }
+    }
   }
 }
