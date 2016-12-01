@@ -1,6 +1,14 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.4.2](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.1...v0.4.2) | 2016-12-01
+### Updated
+ - Package Description
+
+## [v0.4.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.0...v0.4.1) | 2016-12-01
+### Updated
+ - Readme
+
 ## [v0.4.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.3.8...v0.4.0) | 2016-12-01
 ### Added
  - WP-CLI Config ([Enhancement #3](https://github.com/peterjohnhunt/wordpress-suite/issues/3))
