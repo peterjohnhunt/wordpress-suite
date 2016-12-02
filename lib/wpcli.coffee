@@ -16,9 +16,9 @@ module.exports = class WPCLI
 			if not exists
 				@emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
 			else
-				@initialize()
+				@main()
 
-	initialize: ->
+	main: ->
 		config_path = @root.getFile('wp-cli.yml')
 		config_path.exists().then (exists) =>
 			if exists
@@ -31,7 +31,7 @@ module.exports = class WPCLI
 			else
 				@discover()
 
-		@emitter.emit 'initialize'
+		@emitter.emit 'main'
 
 	discover: ->
 		console.log @config
@@ -77,7 +77,7 @@ module.exports = class WPCLI
 		@subscriptions?.dispose()
 
 	onDidInitialize: (callback) ->
-		@emitter.on('initialize', callback)
+		@emitter.on('main', callback)
 
 	onDidDiscover: (callback) ->
 		@emitter.on('discover', callback)

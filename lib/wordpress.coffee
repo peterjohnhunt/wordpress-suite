@@ -17,9 +17,9 @@ module.exports = class Wordpress
 
 		atom.notifications.addSuccess(@name + ': Initialized' )
 
-		requirePackages('tree-view','notifications').then ([treeView, notifications]) => @initialize([treeView, notifications])
+		requirePackages('tree-view','notifications').then ([treeView, notifications]) => @main([treeView, notifications])
 
-	initialize: ([treeView, notifications]) ->
+	main: ([treeView, notifications]) ->
 		@treeView = treeView.createView()
 		@notifications = notifications
 

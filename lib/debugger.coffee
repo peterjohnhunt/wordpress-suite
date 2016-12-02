@@ -8,9 +8,9 @@ module.exports = class Debugger
 		@subscriptions = new CompositeDisposable
 		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
-		@initialize()
+		@main()
 
-	initialize: ->
+	main: ->
 		if @log
 			@subscriptions.dispose();
 
@@ -24,11 +24,11 @@ module.exports = class Debugger
 			if not created
 				@log.read().then (contents) =>
 					@log.history = contents
-			@emitter.emit 'initialize'
+			@emitter.emit 'main'
 
 		@subscriptions.add @log.onDidChange => @change()
-		@subscriptions.add @log.onDidRename => @initialize()
-		@subscriptions.add @log.onDidDelete => @initialize()
+		@subscriptions.add @log.onDidRename => @main()
+		@subscriptions.add @log.onDidDelete => @main()
 
 	open: ->
 		atom.workspace.open(@log.getPath(), {pending:false, searchAllPanes:true})
@@ -90,7 +90,7 @@ module.exports = class Debugger
 		@subscriptions?.dispose()
 
 	onDidInitialize: (callback) ->
-		@emitter.on('initialize', callback)
+		@emitter.on('main', callback)
 
 	onDidUpdate: (callback) ->
 		@emitter.on('update', callback)

@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.4.3](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.2...v0.4.3) | 2016-12-02
+### Updated
+ - Atom 1.14 Initialize Compatibility ([Bug #4](https://github.com/peterjohnhunt/wordpress-suite/issues/4))
+
 ## [v0.4.2](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.1...v0.4.2) | 2016-12-01
 ### Updated
  - Package Description

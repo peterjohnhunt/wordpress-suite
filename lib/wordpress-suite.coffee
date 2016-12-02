@@ -16,13 +16,13 @@ module.exports = wordpressSuite =
 	activate: ->
 		if atom.inDevMode()
 			try
-				@initialize()
+				@main()
 			catch e
 				console.log e
 		else
-			@initialize()
+			@main()
 
-	initialize: ->
+	main: ->
 		# Variables
 		@sites = [];
 		@projectPaths = atom.project.getPaths();
