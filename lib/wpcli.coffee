@@ -34,7 +34,6 @@ module.exports = class WPCLI
 		@emitter.emit 'main'
 
 	discover: ->
-		console.log @config
 		WP.discover { path: @config }, (wp) =>
 			@wp = wp
 
@@ -60,10 +59,11 @@ module.exports = class WPCLI
 		today = new Date
 		timestamp = "backup-#{today.getFullYear()}-#{(today.getMonth()+1)}-#{today.getDate()}-#{today.getHours()}-#{today.getMinutes()}-#{today.getSeconds()}.sql"
 		@export(timestamp)
-		importPath = @root.getSubdirectory('db').getPath() + '/' + dbname
+		importPath = @root.getSubdirectory('db').getFile(dbname)
 		importPath.exists().then (exists) =>
 			if exists
-				@wp.db.import importPath, (err,data) =>
+				dbpath = importPath.getPath()
+				@wp.db.import dbpath, (err,data) =>
 					if err
 						@emitter.emit 'error', err
 					else
