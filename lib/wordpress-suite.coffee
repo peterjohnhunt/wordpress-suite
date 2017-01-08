@@ -58,6 +58,10 @@ module.exports = wordpressSuite =
 					site = new Wordpress(root)
 					site.addRelatedPath(projectPath)
 					@sites.push(site)
+				else if root.getFile('wp-cli.yml').existsSync()
+					site = new Wordpress(root)
+					site.addRelatedPath(projectPath)
+					@sites.push(site)
 			else
 				site = @sites[site_id]
 				site.addRelatedPath(projectPath)

@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v0.4.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.4...v0.4.5) | 2017-01-08
+### Fixed
+ - Initialization Conditionals ([Bug #5](https://github.com/peterjohnhunt/wordpress-suite/issues/5))
+
 ## [v0.4.4](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.3...v0.4.4) | 2016-12-06
 ### Fixed
  - WP-CLI Import Database
