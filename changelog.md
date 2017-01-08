@@ -1,6 +1,18 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.4...v1.0.0) | 2016-12-12
+### Added
+ - Refactored and Upgraded to complete a v1.0.0
+ - Full WP-CLI Integration
+ - WP-CLI Download Wordpress
+ - WP-CLI Setup Config
+ - WP-CLI Database Tables
+ - WP-CLI Create Database
+ - Automatic Updates and connection (No more need to reload the window)
+ - Smart Menus - Only show menu commands that are relevant to the current site status
+ - Notification and File management for easier additions coming soon
+
 ## [v0.4.4](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.3...v0.4.4) | 2016-12-06
 ### Fixed
  - WP-CLI Import Database

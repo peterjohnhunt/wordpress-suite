@@ -10,8 +10,8 @@ module.exports = wordpressSuite =
 
 	config: config
 
-	consumeAutoreload: (reloader) ->
-		reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/","node_modules/"])
+	consumeAutoReload: (reloader) ->
+		reloader(pkg:"wordpress-suite",folders:["lib/","node_modules/","menus/"],files:["package.json","lib/wordpress-suite.coffee","lib/wordpress.coffee","lib/wpcli.coffee","lib/debugger.coffee","menus/atom-wordpress.cson"])
 
 	activate: ->
 		if atom.inDevMode()
@@ -53,11 +53,8 @@ module.exports = wordpressSuite =
 		for projectPath in projectPaths
 			site_id = @folderGetProjectId(projectPath)
 			if site_id is false
-				root = new Directory(projectPath.split('wp-content', 1)[0])
-				if root.getSubdirectory('wp-content').existsSync()
-					site = new Wordpress(root)
-					site.addRelatedPath(projectPath)
-					@sites.push(site)
+				site = new Wordpress(projectPath)
+				@sites.push(site)
 			else
 				site = @sites[site_id]
 				site.addRelatedPath(projectPath)

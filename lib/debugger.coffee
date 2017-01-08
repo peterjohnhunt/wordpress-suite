@@ -4,129 +4,143 @@ module.exports = class Debugger
 	constructor: (directory) ->
 		@emitter = new Emitter
 		@root = directory
+		@directory = @root.getSubdirectory('wp-content')
+		@log = @directory.getFile('debug.log')
+		@history = ''
+		@watching = false
+		@ignored = []
+
+		@buttons = [
+			{
+				text: 'Clear',
+				className: 'btn-clear',
+				onDidClick: =>
+					@clear()
+			},
+			{
+				text: 'Open',
+				className: 'btn-open',
+				onDidClick: =>
+					@open()
+			},
+			{
+				className: 'btn-ignore btn-right',
+				onDidClick: (event) =>
+					notification = event.target.parentElement.parentElement.parentElement.parentElement.model
+					message = notification.getDetail()
+					notification.dismiss()
+					@ignore_add(message)
+			}
+		]
 
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
-
-		@main()
+		@subscriptions.add @root.onDidChange => @main()
 
 	main: ->
-		if @log
-			@subscriptions.dispose();
+		@directory.exists().then (exists) =>
+			if exists and not @initialized
+				@create()
+				@subscriptions.add @log.onDidChange => @change()
+				@subscriptions.add @log.onDidRename => @create()
+				@subscriptions.add @log.onDidDelete => @main()
+			@initialized = exists
+			@emitter.emit 'status:initialized', @initialized
+			@watching = exists
+			@emitter.emit 'status:watching', @watching
 
-		@log = @root.getSubdirectory('wp-content').getFile('debug.log')
-		@log.history = ''
-		@log.recent = []
-		@log.watching = true
-		@log.ignored = []
-
+	create: ->
 		@log.create().then (created) =>
 			if not created
+				@emitter.emit 'log:created'
 				@log.read().then (contents) =>
-					@log.history = contents
-			@emitter.emit 'main'
-
-		@subscriptions.add @log.onDidChange => @change()
-		@subscriptions.add @log.onDidRename => @main()
-		@subscriptions.add @log.onDidDelete => @main()
+					@history = contents
+					@emitter.emit 'status:contents', @history
 
 	open: ->
 		atom.workspace.open(@log.getPath(), {pending:false, searchAllPanes:true})
+		@emitter.emit 'log:open'
 
 	clear: ->
 		@log.write('')
-		@log.history = ''
-		@log.recent = []
-		@emitter.emit 'clear'
+		@history = ''
+		@emitter.emit 'log:clear'
+		@emitter.emit 'status:contents', @history
 
 	pause: ->
-		@log.watching = false;
-		@emitter.emit 'pause'
+		@watching = false
+		@emitter.emit 'status:watching', @watching
 
 	resume: ->
-		@log.watching = true;
-		@emitter.emit 'resume'
+		@watching = true
+		@emitter.emit 'status:watching', @watching
 
-	ignore: (message) ->
-		@log.ignored.push(message)
-		@emitter.emit 'message:ignored'
+	ignore_add: (message) ->
+		@ignored.push(message)
+		@emitter.emit 'ignored:add'
+		@emitter.emit 'status:ignored', @ignored.length > 0
 
-	clearIgnored: ->
-		@log.ignored = []
-		@emitter.emit 'clear:ignored'
+	ignore_clear: ->
+		@ignored = []
+		@emitter.emit 'ignored:clear'
+		@emitter.emit 'status:ignored', @ignored.length > 0
 
 	change: ->
-		return unless @log.watching
-
-		type = 'info'
-
 		@log.read().then (contents) =>
-			if contents.length >= @log.history.length
-				messages = contents.replace(@log.history,'').split(/^\[\d{2}-\w{3}-\d{4} \d{2}:\d{2}:\d{2} UTC\] /gm)
+			if contents.length >= @history.length
+				messages = contents.replace(@history,'').split(/^\[\d{2}-\w{3}-\d{4} \d{2}:\d{2}:\d{2} UTC\] /gm)
 				for message in messages
 					if message isnt ''
 						if message.indexOf('PHP Parse error:') == 0
 							message = message.replace(/PHP Parse error:\s+/,'')
+							title = 'Error'
 							type = 'error'
 						else if message.indexOf('PHP Notice:') == 0
 							message = message.replace(/PHP Notice:\s+/,'')
-							type = 'notice'
+							title = 'Notice'
+							type = 'warning'
 						else if message.indexOf('PHP Deprecated:') == 0
 							message = message.replace(/PHP Deprecated:\s+/,'')
-							type = 'deprecation'
+							title = 'Deprecation'
+							type = 'warning'
 						else if message.indexOf('PHP Warning:') == 0
 							message = message.replace(/PHP Warning:\s+/,'')
+							title = 'Warning'
 							type = 'warning'
 						else
+							title = 'Message'
 							type = 'info'
+						if @watching and message not in @ignored
+							@emitter.emit 'log:message', [title, type, { dismissable:true, detail: message, buttons: @buttons }]
+			@history = contents
+			@emitter.emit 'status:contents', @history
 
-						if atom.config.get('wordpress-suite.notifications.'+type+'.show') && message not in @log.ignored
-							@emitter.emit 'message:'+type, message
-			@log.history = contents
+	onIsInitialized: (callback) ->
+		@emitter.on('status:initialized', callback)
 
-	dispose: ->
-		@emitter?.emit 'dispose'
-		@emitter?.dispose()
-		@subscriptions?.dispose()
+	onIsWatching: (callback) ->
+		@emitter.on('status:watching', callback)
 
-	onDidInitialize: (callback) ->
-		@emitter.on('main', callback)
+	onIsContents: (callback) ->
+		@emitter.on('status:contents', callback)
 
-	onDidUpdate: (callback) ->
-		@emitter.on('update', callback)
+	onIsIgnored: (callback) ->
+		@emitter.on('status:ignored', callback)
 
 	onDidClear: (callback) ->
-		@emitter.on('clear', callback)
+		@emitter.on('log:clear', callback)
 
-	onDidPause: (callback) ->
-		@emitter.on('pause', callback)
+	onDidOpen: (callback) ->
+		@emitter.on('log:open', callback)
 
-	onDidResume: (callback) ->
-		@emitter.on('resume', callback)
+	onDidLog: (callback) ->
+		@emitter.on('log:message', callback)
 
-	onDidMessageInfo: (callback) ->
-		@emitter.on('message:info', callback)
+	onDidIgnoredAdd: (callback) ->
+		@emitter.on('ignored:add', callback)
 
-	onDidMessageNotice: (callback) ->
-		@emitter.on('message:notice', callback)
+	onDidIgnoredClear: (callback) ->
+		@emitter.on('ignored:clear', callback)
 
-	onDidMessageDeprecation: (callback) ->
-		@emitter.on('message:deprecation', callback)
-
-	onDidMessageWarning: (callback) ->
-		@emitter.on('message:warning', callback)
-
-	onDidMessageError: (callback) ->
-		@emitter.on('message:error', callback)
-
-	onDidMessageNone: (callback) ->
-		@emitter.on('message:none', callback)
-
-	onDidMessageIgnored: (callback) ->
-		@emitter.on('message:ignored', callback)
-
-	onDidClearIgnored: (callback) ->
-		@emitter.on('clear:ignored', callback)
-
-	onDidDispose: (callback) ->
-		@emitter.on('dispose', callback)
+	dispose: ->
+		@emitter?.dispose()
+		@subscriptions?.dispose()

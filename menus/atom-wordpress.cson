@@ -1,65 +1,201 @@
 'context-menu':
-	'.project-root.wordpress > .header': [
+	'.project-root.wordpress:not(.site) > .header': [
+		{ 'type': 'separator' },
 		{
 			'label': 'Wordpress',
 			'submenu': [
 				{
-					'label': 'Add Project Root',
-					'command': 'wordpress-suite:root:open'
+					'label': 'Add Site Root',
+					'command': 'wordpress-suite:site:open'
 				},
 				{
-					'label': 'Show Notifications',
-					'command': 'wordpress-suite:notifications:show'
-				},
+					'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.debug > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
 				{
-					'label': 'Clear Debug Log',
-					'command': 'wordpress-suite:debug:clear'
-				},
-				{
-					'label': 'Open Debug Log',
+					'label': 'Open Log',
 					'command': 'wordpress-suite:debug:open'
+				}
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.debug.contents > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Clear Log',
+					'command': 'wordpress-suite:debug:clear'
+				}
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.debug.ignored > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Reset Ignored Messages',
+					'command': 'wordpress-suite:debug:ignored'
 				},
 				{
-					'label': 'Clear Ignored',
-					'command': 'wordpress-suite:debug:clearIgnored'
+				    'type': 'separator'
 				}
 			]
-		}
+		},
+		{ 'type': 'separator' }
 	],
-	'.project-root.wordpress.watching > .header': [
+	'.project-root.debug.watching > .header': [
+		{ 'type': 'separator' },
 		{
 			'label': 'Wordpress',
 			'submenu': [
 				{
-					'label': 'Pause Watching',
+					'label': 'Pause Watching Log',
 					'command': 'wordpress-suite:debug:pause'
+				},
+				{
+				    'type': 'separator'
 				}
 			]
-		}
+		},
+		{ 'type': 'separator' }
 	],
-	'.project-root.wordpress:not(.watching) > .header': [
+	'.project-root.debug:not(.watching) > .header': [
+		{ 'type': 'separator' },
 		{
 			'label': 'Wordpress',
 			'submenu': [
 				{
-					'label': 'Resume Watching',
+					'label': 'Resume Watching Log',
 					'command': 'wordpress-suite:debug:resume'
+				},
+				{
+				    'type': 'separator'
 				}
 			]
-		}
+		},
+		{ 'type': 'separator' }
 	],
-	'.project-root.wordpress.cli > .header': [
+	'.project-root.cli:not(.installed) > .header': [
+		{ 'type': 'separator' },
 		{
 			'label': 'Wordpress',
 			'submenu': [
+				{
+					'label': 'Download Wordpress',
+					'command': 'wordpress-suite:cli:core:download'
+				},
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.cli.installed:not(.configured) > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Configure Wordpress',
+					'command': 'wordpress-suite:cli:core:configure'
+				},
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.cli.checked:not(.connected) > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Install Wordpress',
+					'command': 'wordpress-suite:cli:core:install'
+				},
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.cli.configured:not(.checked) > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Create Database',
+					'command': 'wordpress-suite:cli:db:create'
+				},
+				{
+				    'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.cli.connected > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Import Database',
+					'command': 'wordpress-suite:cli:database:import'
+				},
 				{
 					'label': 'Export Database',
 					'command': 'wordpress-suite:cli:database:export'
 				},
 				{
-					'label': 'Import Database',
-					'command': 'wordpress-suite:cli:database:import'
+				    'type': 'separator'
 				}
 			]
-		}
-	]
+		},
+		{ 'type': 'separator' }
+	],
+	'.project-root.wordpress.notifications > .header': [
+		{ 'type': 'separator' },
+		{
+			'label': 'Wordpress',
+			'submenu': [
+				{
+					'label': 'Show Notifications',
+					'command': 'wordpress-suite:notifications:show'
+				},
+				{
+					'label': 'Clear Notifications',
+					'command': 'wordpress-suite:notifications:clear'
+				},
+				{
+					'type': 'separator'
+				}
+			]
+		},
+		{ 'type': 'separator' }
+	],

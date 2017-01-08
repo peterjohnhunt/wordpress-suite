@@ -6,56 +6,193 @@ command = require 'command-exists'
 module.exports = class WPCLI
 	constructor: (directory) ->
 		@emitter = new Emitter
-		@root = directory
-		@config = @root.getPath()
+		@root    = directory
+		@name    = @root.getBaseName()
+		@site    = {
+			path: @root.getPath(),
+			yml: @root.getFile('wp-cli.yml'),
+			config: @root.getFile('wp-config.php'),
+			db: {
+				dbname:@name,
+				dbuser:'root',
+				dbpass:'root'
+			},
+			details: {
+				url:'http://localhost/'+@name,
+				title:@name,
+				admin_user:'root',
+				admin_password:'root',
+				admin_email:'admin@'+@name+'.com'
+			},
+		}
 
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
-
-		command 'wp', (err,exists) =>
-			if not exists
-				@emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
-			else
-				@main()
+		@subscriptions.add @root.onDidChange => @main()
 
 	main: ->
-		config_path = @root.getFile('wp-cli.yml')
-		config_path.exists().then (exists) =>
+		command 'wp', (err,exists) =>
+			@emitter.emit 'status:command', exists
 			if exists
-				config_path.read().then (contents) =>
+				@check_yml()
+			else
+				@initialized = true
+				@emitter.emit 'status:initialized', @initialized
+
+	setup: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		WP.discover { path: @site.path }, (wp) =>
+			@wp = wp
+			@check_files()
+
+	check_yml: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@site.yml.exists().then (exists) =>
+			if exists
+				@subscriptions.add @site.yml.onDidChange => @check_yml()
+				@subscriptions.add @site.yml.onDidRename => @check_yml()
+				@subscriptions.add @site.yml.onDidDelete => @check_yml()
+
+				@site.yml.read().then (contents) =>
 					if contents
 						parsed = yml.parse(contents)
-						if parsed.path
-							@config = @root.getSubdirectory(parsed.path).getPath()
-					@discover()
+						if parsed?.path?
+							@site.path = @root.getSubdirectory(parsed.path).getPath()
+					@setup()
 			else
-				@discover()
+				@setup()
 
-		@emitter.emit 'main'
+	check_files: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.core.version (err,installed) =>
+			@emitter.emit 'status:installed', installed
+			@check_config()
+			if not installed
+				@initialized = true
+				@emitter.emit 'status:initialized', @initialized
+			@installed = installed
 
-	discover: ->
-		WP.discover { path: @config }, (wp) =>
-			@wp = wp
+	check_config: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@site.config.exists().then (exists) =>
+			@emitter.emit 'status:configured', exists
+			@check_db()
+			if exists
+				@subscriptions.add @site.config.onDidChange => @check_config()
+				@subscriptions.add @site.config.onDidRename => @check_config()
+				@subscriptions.add @site.config.onDidDelete => @check_config()
+			else
+				@initialized = true
+				@emitter.emit 'status:initialized', @initialized
+			@configured = exists
 
-			@wp.option.get 'blogname', (err,data) =>
-				if err
-					@emitter.emit 'error', err
-				else
-					@emitter.emit 'name', data
+	check_db: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.db.check (err) =>
+			checked = not err
+			@emitter.emit 'status:checked', checked
+			@check_connect()
+			if not checked
+				@initialized = true
+				@emitter.emit 'status:initialized', @initialized
+			@checked = checked
 
-			@emitter.emit 'discover'
+	check_connect: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.core.is_installed (err) =>
+			connected = not err
+			@emitter.emit 'status:connected', connected
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
+			if connected
+				@getName()
+				@getPlugins()
+			@connected = connected
+
+	getName: ->
+		@wp.option.get 'blogname', (err,name) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'wordpress:name', name
+
+	getPlugins: ->
+		@wp.plugin.list (err,plugins) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'wordpress:plugins', plugins
+
+	download: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.core.download (err,download) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'files:download', download
+				@check_files()
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
+
+	config: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.core.config @site.db, (err,config) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'files:config', config
+				@check_config()
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
+
+	create: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.db.create (err,create) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'database:create', create
+				@check_db()
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
+
+	install: ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
+		@wp.core.install @site.details, (err,install) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'files:install', install
+				@check_connect()
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
 
 	export: (dbname = 'latest-db.sql') ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
 		exportPath = @root.getSubdirectory('db')
 		exportPath.create().then (created) =>
 			dbpath = exportPath.getPath() + '/' + dbname
 			@wp.db.export dbpath, (err,data) =>
 				if err
-					@emitter.emit 'error', err
+					@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
 				else
-					@emitter.emit 'export', data
+					@emitter.emit 'database:export', data
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
 
 	import: (dbname = 'latest-db.sql') ->
+		@initialized = false
+		@emitter.emit 'status:processing', @initialized
 		today = new Date
 		timestamp = "backup-#{today.getFullYear()}-#{(today.getMonth()+1)}-#{today.getDate()}-#{today.getHours()}-#{today.getMinutes()}-#{today.getSeconds()}.sql"
 		@export(timestamp)
@@ -65,46 +202,59 @@ module.exports = class WPCLI
 				dbpath = importPath.getPath()
 				@wp.db.import dbpath, (err,data) =>
 					if err
-						@emitter.emit 'error', err
+						@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
 					else
-						@emitter.emit 'import', data
+						@emitter.emit 'database:import', data
 			else
-				@emitter.emit 'error', 'No Database Found'
+				@emitter.emit 'message:error', 'No Database Found'
+			@initialized = true
+			@emitter.emit 'status:initialized', @initialized
 
-	dispose: ->
-		@emitter?.emit 'dispose'
-		@emitter?.dispose()
-		@subscriptions?.dispose()
+	onIsCommand: (callback) ->
+		@emitter.on('status:command', callback)
 
-	onDidInitialize: (callback) ->
-		@emitter.on('main', callback)
+	onIsInitialized: (callback) ->
+		@emitter.on('status:initialized', callback)
 
-	onDidDiscover: (callback) ->
-		@emitter.on('discover', callback)
+	onIsInstalled: (callback) ->
+		@emitter.on('status:installed', callback)
 
-	onDidUpdate: (callback) ->
-		@emitter.on('update', callback)
+	onIsConfigured: (callback) ->
+		@emitter.on('status:configured', callback)
 
-	onDidDispose: (callback) ->
-		@emitter.on('dispose', callback)
+	onIsChecked: (callback) ->
+		@emitter.on('status:checked', callback)
+
+	onIsConnected: (callback) ->
+		@emitter.on('status:connected', callback)
 
 	onDidName: (callback) ->
-		@emitter.on('name', callback)
+		@emitter.on('wordpress:name', callback)
 
-	onDidURL: (callback) ->
-		@emitter.on('url', callback)
+	onDidPlugins: (callback) ->
+		@emitter.on('wordpress:plugins', callback)
 
-	onDidPlugin: (callback) ->
-		@emitter.on('plugin', callback)
+	onDidDownload: (callback) ->
+		@emitter.on('files:download', callback)
 
-	onDidWarning: (callback) ->
-		@emitter.on('warning', callback)
+	onDidConfig: (callback) ->
+		@emitter.on('files:config', callback)
 
-	onDidError: (callback) ->
-		@emitter.on('error', callback)
+	onDidInstall: (callback) ->
+		@emitter.on('files:install', callback)
+
+	onDidCreate: (callback) ->
+		@emitter.on('database:create', callback)
 
 	onDidExport: (callback) ->
-		@emitter.on('export', callback)
+		@emitter.on('database:export', callback)
 
 	onDidImport: (callback) ->
-		@emitter.on('import', callback)
+		@emitter.on('database:import', callback)
+
+	onDidError: (callback) ->
+		@emitter.on('message:error', callback)
+
+	dispose: ->
+		@emitter?.dispose()
+		@subscriptions?.dispose()

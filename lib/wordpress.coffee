@@ -2,62 +2,130 @@ Debugger = require './debugger'
 WPCLI = require './wpcli'
 path = require 'path'
 {requirePackages} = require 'atom-utils'
-{CompositeDisposable} = require 'atom'
+{CompositeDisposable, Emitter, Directory, File} = require 'atom'
 
 module.exports = class Wordpress
-	constructor: (directory) ->
-		@root          = directory
-		@name          = @root.getBaseName()
-		@sitePaths     = []
-		@messages      = []
+	constructor: (projectPath) ->
+		@emitter   = new Emitter
+		parent     = projectPath.split('wp-content', 1)[0]
+		@root      = new Directory(parent)
+		@name      = @root.getBaseName()
+		@plugins   = []
+		@wordpress = false
+		@sitePaths = [projectPath]
+		@messages  = []
+
 		@subscriptions = new CompositeDisposable
+		@subscriptions.add @root.onDidChange => @main()
 
-		@subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:root:open': => if @isSelected() then @openProjectRoot()
-		@subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
+		@subscriptions.add atom.project.onDidChangePaths => @checkSite()
 
-		atom.notifications.addSuccess(@name + ': Initialized' )
+		@subscriptions.add atom.project.onDidChangePaths =>
+			console.log 'paths changed'
+			if @wordpress? then @addClassAll('wordpress') else @removeClassAll('wordpress')
+			if @messages?.length > 0 then @addClassAll('notifications') else @removeClassAll('notifications')
+			if @wpcli?.initialized then @addClassAll('cli') else @removeClassAll('cli')
+			if @wpcli?.installed then @addClassAll('installed') else @removeClassAll('installed')
+			if @wpcli?.configured then @addClassAll('configured') else @removeClassAll('configured')
+			if @wpcli?.checked then @addClassAll('checked') else @removeClassAll('checked')
+			if @wpcli?.connected then @addClassAll('connected') else @removeClassAll('connected')
+			if @debug?.initialized then @addClassAll('debug') else @removeClassAll('debug')
+			if @debug?.watching then @addClassAll('watching') else @removeClassAll('watching')
+			if @debug?.ignored.length > 0 then @addClassAll('ignored') else @removeClassAll('ignored')
+			if @debug?.history then @addClassAll('contents') else @removeClassAll('contents')
 
-		requirePackages('tree-view','notifications').then ([treeView, notifications]) => @main([treeView, notifications])
+		requirePackages('tree-view','notifications').then ([treeView, notifications]) =>
+			@treeView = treeView.createView()
+			@notifications = notifications
 
-	main: ([treeView, notifications]) ->
-		@treeView = treeView.createView()
-		@notifications = notifications
+			@subscriptions.add @onIsWordpress (wordpress) => if wordpress then @addClassAll('wordpress') else @removeClassAll('wordpress')
+			@subscriptions.add @onIsSite (site) => if site then @addClassAll('site') else @removeClassAll('site')
+			@subscriptions.add @onIsNotifications (notifications) => if notifications then @addClassAll('notifications') else @removeClassAll('notifications')
 
-		@addClass('wordpress')
-		@subscriptions.add atom.project.onDidChangePaths => @addClass('wordpress')
+			@subscriptions.add atom.commands.add '.wordpress:not(.site) > .header', 'wordpress-suite:site:open': => if @isSelected() then @addSite()
+			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
+			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:clear': => if @isSelected() then @clearNotifications()
+			@main()
 
-		@debug = new Debugger(@root)
-		@subscriptions.add @debug.onDidPause => atom.notifications.addWarning(@name + ": Paused Watching")
-		@subscriptions.add @debug.onDidResume => atom.notifications.addSuccess(@name + ": Resumed Watching")
-		@subscriptions.add @debug.onDidMessageInfo (message) => @addNotification(message, 'Info', atom.config.get('wordpress-suite.notifications.info.autodismiss'))
-		@subscriptions.add @debug.onDidMessageNotice (message) => @addNotification(message, 'Notice', atom.config.get('wordpress-suite.notifications.notice.autodismiss'))
-		@subscriptions.add @debug.onDidMessageDeprecation (message) => @addNotification(message, 'Deprecation', atom.config.get('wordpress-suite.notifications.deprecation.autodismiss'))
-		@subscriptions.add @debug.onDidMessageWarning (message) => @addNotification(message, 'Warning', atom.config.get('wordpress-suite.notifications.warning.autodismiss'))
-		@subscriptions.add @debug.onDidMessageError (message) => @addNotification(message, 'Error', atom.config.get('wordpress-suite.notifications.error.autodismiss'))
-		@subscriptions.add @debug.onDidMessageIgnored => atom.notifications.addSuccess(@name + ": Message Ignored")
-		@subscriptions.add @debug.onDidClearIgnored => atom.notifications.addSuccess(@name + ": Ignore Cleared")
-		@subscriptions.add @debug.onDidClear => @clearNotifications() and atom.notifications.addSuccess(@name + ": Cleared")
-		@subscriptions.add @debug.onDidInitialize => @addClass('watching')
-		@subscriptions.add @debug.onDidUpdate => if @debug.log.watching then @addClass('watching')
-		@subscriptions.add @debug.onDidDispose => @removeClass('watching')
-		@subscriptions.add @debug.onDidPause => @removeClass('watching')
-		@subscriptions.add @debug.onDidResume => @addClass('watching')
-		@subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
-		@subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:clear': => if @isSelected() then @debug.clear()
-		@subscriptions.add atom.commands.add '.project-root.wordpress.watching > .header', 'wordpress-suite:debug:pause': => if @isSelected() then @debug.pause()
-		@subscriptions.add atom.commands.add '.project-root.wordpress:not(.watching) > .header', 'wordpress-suite:debug:resume': => if @isSelected() then @debug.resume()
-		@subscriptions.add atom.commands.add '.project-root.wordpress > .header', 'wordpress-suite:debug:clearIgnored': => if @isSelected() then @debug.clearIgnored()
+			@wpcli = new WPCLI(@root)
+			@subscriptions.add @wpcli.onIsCommand (exists) => if not exists and @wordpress then @addNotification('WP-CLI Could Not Be Found!', 'warning', {dismissable:true, detail:"WP CLI is not installed.\nFor additional features download and install wp-cli from: http://wp-cli.org/"})
+			@subscriptions.add @wpcli.onDidError ([title, type, options]) => @addNotification(title, type, options)
 
-		@wpcli = new WPCLI(@root)
-		@subscriptions.add @wpcli.onDidWarning (message) => atom.notifications.addWarning(@name + ": CLI Warning", {dismissable: false, detail: message})
-		@subscriptions.add @wpcli.onDidError (message) => atom.notifications.addError(@name + ": CLI Error", {dismissable: false, detail: message})
-		@subscriptions.add @wpcli.onDidExport => atom.notifications.addSuccess(@name + ": Database Exported")
-		@subscriptions.add @wpcli.onDidImport => atom.notifications.addSuccess(@name + ": Database Imported")
-		@subscriptions.add @wpcli.onDidDiscover => @addClass('cli')
-		@subscriptions.add @wpcli.onDidUpdate => if @wpcli.wp then @addClass('cli')
-		@subscriptions.add @wpcli.onDidName (name) => @name = name
-		@subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:export': => if @isSelected() then @wpcli.export()
-		@subscriptions.add atom.commands.add '.project-root.wordpress.cli > .header', 'wordpress-suite:cli:database:import': => if @isSelected() then @wpcli.import()
+			@subscriptions.add @wpcli.onIsInitialized (initialized) => if initialized then @addClassAll('cli') else @removeClassAll('cli')
+			@subscriptions.add @wpcli.onIsInstalled (installed) => if installed then @addClassAll('installed') else @removeClassAll('installed')
+			@subscriptions.add @wpcli.onIsConfigured (configured) => if configured then @addClassAll('configured') else @removeClassAll('configured')
+			@subscriptions.add @wpcli.onIsChecked (checked) => if checked then @addClassAll('checked') else @removeClassAll('checked')
+			@subscriptions.add @wpcli.onIsConnected (connected) => if connected then @addClassAll('connected') else @removeClassAll('connected')
+
+			@subscriptions.add @wpcli.onDidName (name) => @name = name
+
+			@subscriptions.add @wpcli.onDidDownload => @addNotification("Wordpress Downloaded")
+			@subscriptions.add @wpcli.onDidConfig => @addNotification("Config Created")
+			@subscriptions.add @wpcli.onDidCreate => @addNotification("DB Created")
+			@subscriptions.add @wpcli.onDidInstall => @addNotification("Wordpress Installed")
+			@subscriptions.add @wpcli.onDidExport => @addNotification("Database Exported")
+			@subscriptions.add @wpcli.onDidImport => @addNotification("Database Imported")
+
+			@subscriptions.add atom.commands.add '.project-root.cli:not(.installed)', 'wordpress-suite:cli:core:download': => if @isSelected() then @wpcli.download()
+			@subscriptions.add atom.commands.add '.project-root.cli.installed:not(.configured)', 'wordpress-suite:cli:core:configure': => if @isSelected() then @wpcli.config()
+			@subscriptions.add atom.commands.add '.project-root.cli.configured:not(.checked)', 'wordpress-suite:cli:db:create': => if @isSelected() then @wpcli.create()
+			@subscriptions.add atom.commands.add '.project-root.cli.checked:not(.connected)', 'wordpress-suite:cli:core:install': => if @isSelected() then @wpcli.install()
+			@subscriptions.add atom.commands.add '.project-root.cli.connected', 'wordpress-suite:cli:database:import': => if @isSelected() then @wpcli.import()
+			@subscriptions.add atom.commands.add '.project-root.cli.connected', 'wordpress-suite:cli:database:export': => if @isSelected() then @wpcli.export()
+			@wpcli.main()
+
+			@debug = new Debugger(@root)
+			@subscriptions.add @debug.onIsInitialized (initialized) => if initialized then @addClassAll('debug') else @removeClassAll('debug')
+			@subscriptions.add @debug.onIsWatching (watching) => if watching then @addClassAll('watching') else @removeClassAll('watching')
+			@subscriptions.add @debug.onIsIgnored (ignored) => if ignored then @addClassAll('ignored') else @removeClassAll('ignored')
+			@subscriptions.add @debug.onIsContents (contents) => if contents then @addClassAll('contents') else @removeClassAll('contents')
+
+			@subscriptions.add @debug.onDidLog ([title, type, options]) => @addNotification(title, type, options)
+			@subscriptions.add @debug.onDidOpen => @clearNotifications()
+			@subscriptions.add @debug.onDidClear => @clearNotifications()
+
+			@subscriptions.add @debug.onDidIgnoredAdd => @addNotification("Message Ignored")
+			@subscriptions.add @debug.onDidIgnoredClear => @addNotification("Ignore Cleared")
+
+			@subscriptions.add atom.commands.add '.project-root.debug > .header', 'wordpress-suite:debug:open': => if @isSelected() then @debug.open()
+			@subscriptions.add atom.commands.add '.project-root.debug.contents > .header', 'wordpress-suite:debug:clear': => if @isSelected() then @debug.clear()
+			@subscriptions.add atom.commands.add '.project-root.debug.ignored > .header', 'wordpress-suite:debug:ignored': => if @isSelected() then @debug.ignore_clear()
+			@subscriptions.add atom.commands.add '.project-root.debug.watching > .header', 'wordpress-suite:debug:pause': => if @isSelected() then @debug.pause()
+			@subscriptions.add atom.commands.add '.project-root.debug:not(.watching) > .header', 'wordpress-suite:debug:resume': => if @isSelected() then @debug.resume()
+			@debug.main()
+
+	main: ->
+		@checkSite()
+		@checkWordpress()
+
+	checkWordpress: ->
+		@root.getSubdirectory('wp-content').exists().then (exists) =>
+			if not @wordpress and exists
+				@addNotification("Wordpress Site Found")
+			@wordpress = exists
+			@emitter.emit 'status:wordpress', @wordpress
+
+	checkSite: ->
+		@site = @root.getPath() in @sitePaths
+		@emitter.emit 'status:site', @site
+
+	addClass: (sitePath, classnames) ->
+		if @treeView
+			for classname in classnames.split(' ')
+				@treeView.entryForPath(sitePath)?.classList.add(classname)
+
+	removeClass: (sitePath, classnames) ->
+		if @treeView
+			for classname in classnames.split(' ')
+				@treeView.entryForPath(sitePath)?.classList.remove(classname)
+
+	addClassAll: (classname) ->
+		for sitePath in @sitePaths
+			@addClass(sitePath,classname)
+
+	removeClassAll: (classname) ->
+		for sitePath in @sitePaths
+			@removeClass(sitePath,classname)
 
 	isSelected: ->
 		if @treeView
@@ -75,62 +143,23 @@ module.exports = class Wordpress
 		index = @sitePaths.indexOf(sitePath)
 		@sitePaths.splice(index,1)
 
-	openProjectRoot: ->
+	addSite: ->
 		atom.project.addPath(@root.getPath())
 
-	addClass: (classname) ->
-		for sitePath in @sitePaths
-			if @treeView
-				@treeView.entryForPath(sitePath)?.classList.add(classname)
+	addPlugin: (plugin) ->
+		console.log 'here'
+		console.log plugin
 
-	removeClass: (classname) ->
-		for sitePath in @sitePaths
-			if @treeView
-				@treeView.entryForPath(sitePath)?.classList.remove(classname)
+	addNotification: (title='', type='success', options={dismissable:false}) ->
+		title = if title then @name + ' | ' + title else @name
 
-	addNotification: (message, type, autodismiss) ->
-		buttons = [
-			{
-				text: 'Clear',
-				className: 'btn-clear',
-				onDidClick: =>
-					@clearNotifications()
-					@debug.clear()
-			},
-			{
-				text: 'Open',
-				className: 'btn-open',
-				onDidClick: =>
-					@clearNotifications()
-					@debug.open()
-			},
-			{
-				className: 'btn-ignore btn-right',
-				onDidClick: (event) =>
-					notification = event.target.parentElement.parentElement.parentElement.parentElement.model
-					message = notification.getDetail()
-					notification.dismiss()
-					@debug.ignore(message)
-			}
-		]
+		notification = atom.notifications.add(type, title, options)
 
-		options = {
-			detail: message,
-			dismissable: !autodismiss,
-			buttons: buttons,
-		}
+		if options.dismissable then @messages.push(notification)
 
-		if type is 'Notice' or type is 'Deprecation' or type is 'Warning'
-			notification = atom.notifications.addWarning(@name + ' | ' + type, options)
-		else if type is 'Error'
-			notification = atom.notifications.addError(@name + ' | ' + type, options)
-		else
-			notification = atom.notifications.addInfo(@name, options)
-
-		@messages.push(notification)
+		@emitter.emit 'status:notifications', @messages.length > 0
 
 		@convertNotification(notification)
-
 		@subscriptions.add notification.onDidDisplay (notification) => @convertNotification(notification)
 
 	clearNotifications: ->
@@ -138,6 +167,7 @@ module.exports = class Wordpress
 			if notification.isDismissable() and not notification.isDismissed()
 				notification.dismiss()
 		@messages = []
+		@emitter.emit 'status:notifications', @messages.length > 0
 
 	showNotifications: ->
 		if @messages.length == 0
@@ -174,8 +204,18 @@ module.exports = class Wordpress
 			atom.workspace.open(@.dataset.sitePath, {pending: false, initialLine: (parseInt(@.dataset.line) - 1), searchAllPanes:true})
 		return link
 
+	onIsWordpress: (callback) ->
+		@emitter.on('status:wordpress', callback)
+
+	onIsSite: (callback) ->
+		@emitter.on('status:site', callback)
+
+	onIsNotifications: (callback) ->
+		@emitter.on('status:notifications', callback)
+
 	dispose: ->
-		@debug?.dispose()
+		if @wordpress then @addNotification("Wordpress Site Removed")
+		@removeClassAll('wordpress site notifications cli installed configured checked connected debug watching ignored contents')
 		@wpcli?.dispose()
+		@debug?.dispose()
 		@subscriptions?.dispose()
-		atom.notifications.addWarning(@name + ': Removed')
