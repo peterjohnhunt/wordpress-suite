@@ -21,7 +21,6 @@ module.exports = class Wordpress
 		@subscriptions.add atom.project.onDidChangePaths => @checkSite()
 
 		@subscriptions.add atom.project.onDidChangePaths =>
-			console.log 'paths changed'
 			if @wordpress? then @addClassAll('wordpress') else @removeClassAll('wordpress')
 			if @messages?.length > 0 then @addClassAll('notifications') else @removeClassAll('notifications')
 			if @wpcli?.initialized then @addClassAll('cli') else @removeClassAll('cli')
@@ -111,13 +110,17 @@ module.exports = class Wordpress
 
 	addClass: (sitePath, classnames) ->
 		if @treeView
-			for classname in classnames.split(' ')
-				@treeView.entryForPath(sitePath)?.classList.add(classname)
+			entry = @treeView.entryForPath(sitePath)
+			if entry
+				for classname in classnames.split(' ')
+					entry.classList.add(classname)
 
 	removeClass: (sitePath, classnames) ->
 		if @treeView
-			for classname in classnames.split(' ')
-				@treeView.entryForPath(sitePath)?.classList.remove(classname)
+			entry = @treeView.entryForPath(sitePath)
+			if entry
+				for classname in classnames.split(' ')
+					entry.classList.remove(classname)
 
 	addClassAll: (classname) ->
 		for sitePath in @sitePaths
@@ -130,7 +133,7 @@ module.exports = class Wordpress
 	isSelected: ->
 		if @treeView
 			for sitePath in @sitePaths
-				if @treeView.entryForPath(sitePath).classList.contains('selected')
+				if @treeView.entryForPath(sitePath)?.classList.contains('selected')
 					return true
 
 	isRelatedPath: (sitePath) ->
