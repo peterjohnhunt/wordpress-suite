@@ -10,60 +10,50 @@ module.exports = class Wordpress
 		parent     = projectPath.split('wp-content', 1)[0]
 		@root      = new Directory(parent)
 		@name      = @root.getBaseName()
+		@site      = null
 		@plugins   = []
-		@wordpress = false
+		@wordpress = null
 		@sitePaths = [projectPath]
+		@entries   = []
 		@messages  = []
 
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add @root.onDidChange => @main()
-
-		@subscriptions.add atom.project.onDidChangePaths => @checkSite()
-
-		@subscriptions.add atom.project.onDidChangePaths =>
-			if @wordpress? then @addClassAll('wordpress') else @removeClassAll('wordpress')
-			if @messages?.length > 0 then @addClassAll('notifications') else @removeClassAll('notifications')
-			if @wpcli?.initialized then @addClassAll('cli') else @removeClassAll('cli')
-			if @wpcli?.installed then @addClassAll('installed') else @removeClassAll('installed')
-			if @wpcli?.configured then @addClassAll('configured') else @removeClassAll('configured')
-			if @wpcli?.checked then @addClassAll('checked') else @removeClassAll('checked')
-			if @wpcli?.connected then @addClassAll('connected') else @removeClassAll('connected')
-			if @debug?.initialized then @addClassAll('debug') else @removeClassAll('debug')
-			if @debug?.watching then @addClassAll('watching') else @removeClassAll('watching')
-			if @debug?.ignored.length > 0 then @addClassAll('ignored') else @removeClassAll('ignored')
-			if @debug?.history then @addClassAll('contents') else @removeClassAll('contents')
 
 		requirePackages('tree-view','notifications').then ([treeView, notifications]) =>
 			@treeView = treeView.createView()
 			@notifications = notifications
 
-			@subscriptions.add @onIsWordpress (wordpress) => if wordpress then @addClassAll('wordpress') else @removeClassAll('wordpress')
-			@subscriptions.add @onIsSite (site) => if site then @addClassAll('site') else @removeClassAll('site')
-			@subscriptions.add @onIsNotifications (notifications) => if notifications then @addClassAll('notifications') else @removeClassAll('notifications')
+			@subscriptions.add @onIsWordpress (wordpress) => if wordpress then @addClass('wordpress') else @removeClass('wordpress')
+			@subscriptions.add @onIsSite (site) => if site then @addClass('site') else @removeClass('site')
+			@subscriptions.add @onIsNotifications (notifications) => if notifications then @addClass('notifications') else @removeClass('notifications')
 
 			@subscriptions.add atom.commands.add '.wordpress:not(.site) > .header', 'wordpress-suite:site:open': => if @isSelected() then @addSite()
 			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
 			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:clear': => if @isSelected() then @clearNotifications()
+
+			@subscriptions.add atom.project.onDidChangePaths =>
+				@checkSite()
+				@checkClasses()
 			@main()
 
 			@wpcli = new WPCLI(@root)
 			@subscriptions.add @wpcli.onIsCommand (exists) => if not exists and @wordpress then @addNotification('WP-CLI Could Not Be Found!', 'warning', {dismissable:true, detail:"WP CLI is not installed.\nFor additional features download and install wp-cli from: http://wp-cli.org/"})
 			@subscriptions.add @wpcli.onDidError ([title, type, options]) => @addNotification(title, type, options)
 
-			@subscriptions.add @wpcli.onIsInitialized (initialized) => if initialized then @addClassAll('cli') else @removeClassAll('cli')
-			@subscriptions.add @wpcli.onIsInstalled (installed) => if installed then @addClassAll('installed') else @removeClassAll('installed')
-			@subscriptions.add @wpcli.onIsConfigured (configured) => if configured then @addClassAll('configured') else @removeClassAll('configured')
-			@subscriptions.add @wpcli.onIsChecked (checked) => if checked then @addClassAll('checked') else @removeClassAll('checked')
-			@subscriptions.add @wpcli.onIsConnected (connected) => if connected then @addClassAll('connected') else @removeClassAll('connected')
+			@subscriptions.add @wpcli.onIsInitialized (initialized) => if initialized then @addClass('cli') else @removeClass('cli')
+			@subscriptions.add @wpcli.onIsInstalled (installed)     => if installed then @addClass('installed') else @removeClass('installed')
+			@subscriptions.add @wpcli.onIsConfigured (configured)   => if configured then @addClass('configured') else @removeClass('configured')
+			@subscriptions.add @wpcli.onIsChecked (checked)         => if checked then @addClass('checked') else @removeClass('checked')
+			@subscriptions.add @wpcli.onIsConnected (connected)     => if connected then @addClass('connected') else @removeClass('connected')
 
 			@subscriptions.add @wpcli.onDidName (name) => @name = name
 
 			@subscriptions.add @wpcli.onDidDownload => @addNotification("Wordpress Downloaded")
-			@subscriptions.add @wpcli.onDidConfig => @addNotification("Config Created")
-			@subscriptions.add @wpcli.onDidCreate => @addNotification("DB Created")
-			@subscriptions.add @wpcli.onDidInstall => @addNotification("Wordpress Installed")
-			@subscriptions.add @wpcli.onDidExport => @addNotification("Database Exported")
-			@subscriptions.add @wpcli.onDidImport => @addNotification("Database Imported")
+			@subscriptions.add @wpcli.onDidConfig   => @addNotification("Config Created")
+			@subscriptions.add @wpcli.onDidCreate   => @addNotification("DB Created")
+			@subscriptions.add @wpcli.onDidInstall  => @addNotification("Wordpress Installed")
+			@subscriptions.add @wpcli.onDidExport   => @addNotification("Database Exported")
+			@subscriptions.add @wpcli.onDidImport   => @addNotification("Database Imported")
 
 			@subscriptions.add atom.commands.add '.project-root.cli:not(.installed)', 'wordpress-suite:cli:core:download': => if @isSelected() then @wpcli.download()
 			@subscriptions.add atom.commands.add '.project-root.cli.installed:not(.configured)', 'wordpress-suite:cli:core:configure': => if @isSelected() then @wpcli.config()
@@ -74,10 +64,10 @@ module.exports = class Wordpress
 			@wpcli.main()
 
 			@debug = new Debugger(@root)
-			@subscriptions.add @debug.onIsInitialized (initialized) => if initialized then @addClassAll('debug') else @removeClassAll('debug')
-			@subscriptions.add @debug.onIsWatching (watching) => if watching then @addClassAll('watching') else @removeClassAll('watching')
-			@subscriptions.add @debug.onIsIgnored (ignored) => if ignored then @addClassAll('ignored') else @removeClassAll('ignored')
-			@subscriptions.add @debug.onIsContents (contents) => if contents then @addClassAll('contents') else @removeClassAll('contents')
+			@subscriptions.add @debug.onIsInitialized (initialized) => if initialized then @addClass('debug') else @removeClass('debug')
+			@subscriptions.add @debug.onIsWatching (watching)       => if watching then @addClass('watching') else @removeClass('watching')
+			@subscriptions.add @debug.onIsIgnored (ignored)         => if ignored then @addClass('ignored') else @removeClass('ignored')
+			@subscriptions.add @debug.onIsContents (contents)       => if contents then @addClass('contents') else @removeClass('contents')
 
 			@subscriptions.add @debug.onDidLog ([title, type, options]) => @addNotification(title, type, options)
 			@subscriptions.add @debug.onDidOpen => @clearNotifications()
@@ -105,30 +95,40 @@ module.exports = class Wordpress
 			@emitter.emit 'status:wordpress', @wordpress
 
 	checkSite: ->
+		@entries = []
+		for sitePath in @sitePaths
+			entry = @treeView.entryForPath(sitePath)
+			if entry
+				@entries.push(entry)
+
 		@site = @root.getPath() in @sitePaths
 		@emitter.emit 'status:site', @site
 
-	addClass: (sitePath, classnames) ->
-		if @treeView
-			entry = @treeView.entryForPath(sitePath)
-			if entry
-				for classname in classnames.split(' ')
-					entry.classList.add(classname)
+	checkClasses: ->
+		if @site? then @addClass('site') else @removeClass('site')
+		if @wordpress? then @addClass('wordpress') else @removeClass('wordpress')
+		if @messages?.length > 0 then @addClass('notifications') else @removeClass('notifications')
+		if @wpcli?.initialized then @addClass('cli') else @removeClass('cli')
+		if @wpcli?.installed then @addClass('installed') else @removeClass('installed')
+		if @wpcli?.configured then @addClass('configured') else @removeClass('configured')
+		if @wpcli?.checked then @addClass('checked') else @removeClass('checked')
+		if @wpcli?.connected then @addClass('connected') else @removeClass('connected')
+		if @debug?.initialized then @addClass('debug') else @removeClass('debug')
+		if @debug?.watching then @addClass('watching') else @removeClass('watching')
+		if @debug?.ignored.length > 0 then @addClass('ignored') else @removeClass('ignored')
+		if @debug?.history then @addClass('contents') else @removeClass('contents')
 
-	removeClass: (sitePath, classnames) ->
-		if @treeView
-			entry = @treeView.entryForPath(sitePath)
-			if entry
-				for classname in classnames.split(' ')
-					entry.classList.remove(classname)
 
-	addClassAll: (classname) ->
-		for sitePath in @sitePaths
-			@addClass(sitePath,classname)
 
-	removeClassAll: (classname) ->
-		for sitePath in @sitePaths
-			@removeClass(sitePath,classname)
+	addClass: (classnames) ->
+		for entry in @entries
+			for classname in classnames.split(' ')
+				entry.classList.add(classname)
+
+	removeClass: (classnames) ->
+		for entry in @entries
+			for classname in classnames.split(' ')
+				entry.classList.remove(classname)
 
 	isSelected: ->
 		if @treeView
@@ -148,10 +148,6 @@ module.exports = class Wordpress
 
 	addSite: ->
 		atom.project.addPath(@root.getPath())
-
-	addPlugin: (plugin) ->
-		console.log 'here'
-		console.log plugin
 
 	addNotification: (title='', type='success', options={dismissable:false}) ->
 		title = if title then @name + ' | ' + title else @name
@@ -218,7 +214,7 @@ module.exports = class Wordpress
 
 	dispose: ->
 		if @wordpress then @addNotification("Wordpress Site Removed")
-		@removeClassAll('wordpress site notifications cli installed configured checked connected debug watching ignored contents')
+		@removeClass('wordpress site notifications cli installed configured checked connected debug watching ignored contents')
 		@wpcli?.dispose()
 		@debug?.dispose()
 		@subscriptions?.dispose()
