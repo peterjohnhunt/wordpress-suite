@@ -5,7 +5,6 @@ module.exports = class Debugger
 		@emitter = new Emitter
 		@root = directory
 		@directory = @root.getSubdirectory('wp-content')
-		@log = @directory.getFile('debug.log')
 		@history = ''
 		@watching = false
 		@ignored = []
@@ -39,6 +38,7 @@ module.exports = class Debugger
 	main: ->
 		@directory.exists().then (exists) =>
 			if exists and not @initialized
+				@log = @directory.getFile('debug.log')
 				@create()
 				@subscriptions.add @log.onDidChange => @change()
 				@subscriptions.add @log.onDidRename => @create()

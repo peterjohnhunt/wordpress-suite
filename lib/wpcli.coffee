@@ -112,6 +112,7 @@ module.exports = class WPCLI
 			if connected
 				@getName()
 				@getPlugins()
+				@getContent()
 			@connected = connected
 
 	getName: ->
@@ -127,6 +128,13 @@ module.exports = class WPCLI
 				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
 			else
 				@emitter.emit 'wordpress:plugins', plugins
+
+	getContent: ->
+		@wp.eval "'echo WP_CONTENT_DIR;'", (err, dir) =>
+			if err
+				@emitter.emit 'message:error', ['WP-CLI Error', 'error', {dismissable:true,detail:err}]
+			else
+				@emitter.emit 'wordpress:content', dir
 
 	download: ->
 		@initialized = false
@@ -233,6 +241,9 @@ module.exports = class WPCLI
 
 	onDidPlugins: (callback) ->
 		@emitter.on('wordpress:plugins', callback)
+
+	onDidContent: (callback) ->
+		@emitter.on('wordpress:content', callback)
 
 	onDidDownload: (callback) ->
 		@emitter.on('files:download', callback)

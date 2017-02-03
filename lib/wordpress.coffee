@@ -31,9 +31,7 @@ module.exports = class Wordpress
 			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:show': => if @isSelected() then @showNotifications()
 			@subscriptions.add atom.commands.add '.wordpress.notifications > .header', 'wordpress-suite:notifications:clear': => if @isSelected() then @clearNotifications()
 
-			@subscriptions.add atom.project.onDidChangePaths =>
-				@checkSite()
-				@checkClasses()
+			@subscriptions.add atom.project.onDidChangePaths => @main()
 			@main()
 
 			@wpcli = new WPCLI(@root)
@@ -47,6 +45,10 @@ module.exports = class Wordpress
 			@subscriptions.add @wpcli.onIsConnected (connected)     => if connected then @addClass('connected') else @removeClass('connected')
 
 			@subscriptions.add @wpcli.onDidName (name) => @name = name
+			@subscriptions.add @wpcli.onDidContent (dir) =>
+				if dir isnt @debug?.directory.getPath()
+					@debug.directory = new Directory(dir)
+					@debug.main()
 
 			@subscriptions.add @wpcli.onDidDownload => @addNotification("Wordpress Downloaded")
 			@subscriptions.add @wpcli.onDidConfig   => @addNotification("Config Created")
@@ -84,8 +86,17 @@ module.exports = class Wordpress
 			@debug.main()
 
 	main: ->
-		@checkSite()
+		@entries = []
+		for sitePath in @sitePaths
+			entry = @treeView.entryForPath(sitePath)
+			if entry
+				@entries.push(entry)
+
+		@site = @root.getPath() in @sitePaths
+
+
 		@checkWordpress()
+		@checkClasses()
 
 	checkWordpress: ->
 		@root.getSubdirectory('wp-content').exists().then (exists) =>
@@ -94,19 +105,9 @@ module.exports = class Wordpress
 			@wordpress = exists
 			@emitter.emit 'status:wordpress', @wordpress
 
-	checkSite: ->
-		@entries = []
-		for sitePath in @sitePaths
-			entry = @treeView.entryForPath(sitePath)
-			if entry
-				@entries.push(entry)
-
-		@site = @root.getPath() in @sitePaths
-		@emitter.emit 'status:site', @site
-
 	checkClasses: ->
-		if @site? then @addClass('site') else @removeClass('site')
-		if @wordpress? then @addClass('wordpress') else @removeClass('wordpress')
+		if @site then @addClass('site') else @removeClass('site')
+		if @wordpress then @addClass('wordpress') else @removeClass('wordpress')
 		if @messages?.length > 0 then @addClass('notifications') else @removeClass('notifications')
 		if @wpcli?.initialized then @addClass('cli') else @removeClass('cli')
 		if @wpcli?.installed then @addClass('installed') else @removeClass('installed')
