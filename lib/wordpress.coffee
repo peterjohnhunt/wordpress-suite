@@ -50,12 +50,12 @@ module.exports = class Wordpress
 					@debug.directory = new Directory(dir)
 					@debug.main()
 
-			@subscriptions.add @wpcli.onDidDownload => @addNotification("Wordpress Downloaded")
-			@subscriptions.add @wpcli.onDidConfig   => @addNotification("Config Created")
-			@subscriptions.add @wpcli.onDidCreate   => @addNotification("DB Created")
-			@subscriptions.add @wpcli.onDidInstall  => @addNotification("Wordpress Installed")
-			@subscriptions.add @wpcli.onDidExport   => @addNotification("Database Exported")
-			@subscriptions.add @wpcli.onDidImport   => @addNotification("Database Imported")
+			@subscriptions.add @wpcli.onDidDownload (detail) => @addNotification("Wordpress Downloaded", 'success', {dismissable: true, detail: detail})
+			@subscriptions.add @wpcli.onDidConfig (detail)   => @addNotification("Config Created", 'success', {dismissable: true, detail: detail})
+			@subscriptions.add @wpcli.onDidCreate (detail)   => @addNotification("DB Created", 'success', {dismissable: true, detail: detail})
+			@subscriptions.add @wpcli.onDidInstall (detail)  => @addNotification("Wordpress Installed", 'success', {dismissable: true, detail: detail})
+			@subscriptions.add @wpcli.onDidExport (detail)   => @addNotification("Database Exported", 'success', {dismissable: true, detail: detail})
+			@subscriptions.add @wpcli.onDidImport (detail)   => @addNotification("Database Imported", 'success', {dismissable: true, detail: detail})
 
 			@subscriptions.add atom.commands.add '.project-root.cli:not(.installed)', 'wordpress-suite:cli:core:download': => if @isSelected() then @wpcli.download()
 			@subscriptions.add atom.commands.add '.project-root.cli.installed:not(.configured)', 'wordpress-suite:cli:core:configure': => if @isSelected() then @wpcli.config()

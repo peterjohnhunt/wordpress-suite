@@ -58,7 +58,8 @@ module.exports = class WPCLI
 					if contents
 						parsed = yml.parse(contents)
 						if parsed?.path?
-							@site.path = @root.getSubdirectory(parsed.path).getPath()
+							core = @root.getSubdirectory(parsed.path)
+							@site.config = core.getFile('wp-config.php')
 					@setup()
 			else
 				@setup()
