@@ -70,7 +70,7 @@ module.exports = class Themes
 						}
 					], shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.themes.get(@label) })
 
-				@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ type: 'separator', shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes() },{ label: 'Themes', submenu: menu, shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes() }] }] }
+				@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: menu, shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes() }] }] }
 
 	activate: (name) ->
 		@emitter.emit 'notification', [ "Activating #{name}", 'info' ]

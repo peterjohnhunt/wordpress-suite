@@ -30,9 +30,9 @@ module.exports = class Site
 		@setup()
 
 	setup: ->
-		@subscriptions.add @notifications = new Notifications(@logger,@name)
 		@subscriptions.add @logFile       = new LogFile(@root,@logger,@name)
 		@subscriptions.add @wpcli         = new WPCLI(@root,@logger,@name)
+		@subscriptions.add @notifications = new Notifications(@logger,@name)
 
 		@subscriptions.add @logFile.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
 		@subscriptions.add @logFile.onMessage ([title,type,detail]) =>

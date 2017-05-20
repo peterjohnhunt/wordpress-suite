@@ -12,6 +12,7 @@ module.exports = class Actions
 			"wordpress-suite:site:addRoot": -> atom.wordpressSuite.getSelectedSite().addRoot()
 			"wordpress-suite:site:notifications:show-recent": -> atom.wordpressSuite.getSelectedSite().notifications.show()
 			"wordpress-suite:site:notifications:clear-recent": -> atom.wordpressSuite.getSelectedSite().notifications.clear()
+			"wordpress-suite:site:notifications:show-muted": -> atom.wordpressSuite.getSelectedSite().notifications.showMuted()
 			"wordpress-suite:site:notifications:clear-muted": -> atom.wordpressSuite.getSelectedSite().notifications.clearMuted()
 			"wordpress-suite:site:notifications:disable": -> atom.wordpressSuite.getSelectedSite().notifications.disable()
 			"wordpress-suite:site:notifications:enable": -> atom.wordpressSuite.getSelectedSite().notifications.enable()
@@ -31,6 +32,8 @@ module.exports = class Actions
 			"wordpress-suite:site:wp-cli:clear-transients": -> atom.wordpressSuite.getSelectedSite().wpcli.clear_transients()
 			"wordpress-suite:site:wp-cli:export-database": -> atom.wordpressSuite.getSelectedSite().wpcli.export_database()
 			"wordpress-suite:site:wp-cli:import-database": -> atom.wordpressSuite.getSelectedSite().wpcli.import_database()
+			"wordpress-suite:site:wp-cli:optimize-database": -> atom.wordpressSuite.getSelectedSite().wpcli.optimize_database()
+			"wordpress-suite:site:wp-cli:repair-database": -> atom.wordpressSuite.getSelectedSite().wpcli.repair_database()
 			"wordpress-suite:site:wp-cli:regenerate-thumbnails": -> atom.wordpressSuite.getSelectedSite().wpcli.regenerate_thumbnails()
 			"wordpress-suite:site:wp-cli:import-media": ->
 				site = atom.wordpressSuite.getSelectedSite()
@@ -43,6 +46,13 @@ module.exports = class Actions
 				{ label: 'Add Root', command: "wordpress-suite:site:addRoot", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasRoot() isnt true }
 				{ label: 'Open Log', command: "wordpress-suite:site:log-file:open", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasLogFile() }
 				{ label: 'Clear Log', command: "wordpress-suite:site:log-file:clear", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().logFileHasMessages() }
+				{ type: 'separator' }
+				{ label: 'Export Database', command: "wordpress-suite:site:wp-cli:export-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+				{ label: 'Import Database', command: "wordpress-suite:site:wp-cli:import-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+				{ type: 'separator' }
+				{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+				{ type: 'separator' }
+				{ label: 'Refresh', command: "wordpress-suite:site:refresh" }
 				{ type: 'separator', shouldDisplay: ->
 					site = atom.wordpressSuite.getSelectedSite()
 					return site.hasRoot() isnt true or site.hasLogFile() or site.logFileHasMessages()
@@ -86,11 +96,11 @@ module.exports = class Actions
 					{ label: 'Disable', command: "wordpress-suite:site:notifications:disable", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().notificationsIsEnabled() }
 					{ label: 'Enable', command: "wordpress-suite:site:notifications:enable", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite().notificationsIsEnabled() }
 				]}
-				{ label: 'Log File', submenu: [
+				{ label: 'Debug Log', submenu: [
 					{ label: 'Pause Watching', command: "wordpress-suite:site:log-file:pause-watching", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().isWatchingLogFile() }
 					{ label: 'Resume Watching', command: "wordpress-suite:site:log-file:resume-watching", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite().isWatchingLogFile() }
 				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasLogFile() }
-				{ label: 'WP-CLI', submenu: [
+				{ label: 'Utilities', submenu: [
 					{ label: 'Clear Everything', command: "wordpress-suite:site:wp-cli:clear-everything", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ type: 'separator' }
 					{ label: 'Reset Permalinks', command: "wordpress-suite:site:wp-cli:reset-permalinks", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
@@ -98,14 +108,11 @@ module.exports = class Actions
 					{ label: 'Clear Cache', command: "wordpress-suite:site:wp-cli:clear-cache", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ label: 'Clear Transients', command: "wordpress-suite:site:wp-cli:clear-transients", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ type: 'separator' }
-					{ label: 'Export Database', command: "wordpress-suite:site:wp-cli:export-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
-					{ label: 'Import Database', command: "wordpress-suite:site:wp-cli:import-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+					{ label: 'Optimize Database', command: "wordpress-suite:site:wp-cli:optimize-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+					{ label: 'Repair Database', command: "wordpress-suite:site:wp-cli:repair-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
 					{ type: 'separator' }
 					{ label: 'Regenerate Thumbnails', command: "wordpress-suite:site:wp-cli:regenerate-thumbnails", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-					{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-				{ type: 'separator' }
-				{ label: 'Refresh', command: "wordpress-suite:site:refresh" }
 			]}]
 		}
 

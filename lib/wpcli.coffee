@@ -241,6 +241,22 @@ module.exports = class WPCLI
 				else
 					@emitter.emit 'message', [ 'WP-CLI: Database Imported!', 'success', message ]
 
+	optimize_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Optimizing Database', 'info' ]
+		@wp.db.optimize (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Optimizing Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Optimized!', 'success', message ]
+
+	repair_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Repair Database', 'info' ]
+		@wp.db.repair (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Repair Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Repaired!', 'success', message ]
+
 	clear_everything: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Clearing Everything', 'info' ]
 		@wp.rewrite.structure ['/%postname%/'], (err,message) =>

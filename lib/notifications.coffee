@@ -49,7 +49,7 @@ module.exports = class Notifications
 		if force or (@enabled and @muted.indexOf(options.detail) is -1)
 			notification = atom.notifications.add(type, title, options)
 
-			if options.dismissable
+			if not force and options.dismissable
 				@messages.push(notification)
 
 			@subscriptions.add notification.onDidDisplay (notification) => @convert(notification)
@@ -100,6 +100,10 @@ module.exports = class Notifications
 		if index > -1
 			@muted.splice(index,1);
 			@emitter.emit 'unmute', [ 'Unmuted Notification', 'success', message ]
+
+	showMuted: ->
+		for message in @muted
+			@emitter.emit 'mute', [ 'Muted Notification', 'warning', message ]
 
 	clearMuted: ->
 		@muted = []
