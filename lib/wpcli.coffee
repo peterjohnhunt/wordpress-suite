@@ -241,6 +241,45 @@ module.exports = class WPCLI
 				else
 					@emitter.emit 'message', [ 'WP-CLI: Database Imported!', 'success', message ]
 
+	clear_everything: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Everything', 'info' ]
+		@wp.rewrite.structure ['/%postname%/'], (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
+			else
+				@emitter.emit 'notification', [ 'WP-CLI: Permalinks Reset!', 'success' ]
+				@wp.rewrite.flush (err,message) =>
+					if err
+						@emitter.emit 'message', [ 'WP-CLI: Error Clearing Rewrite Rules', 'error', err ]
+					else
+						@emitter.emit 'notification', [ 'WP-CLI: Rewrite Rules Cleared!', 'success' ]
+						@wp.cache.flush (err,message) =>
+							if err
+								@emitter.emit 'message', [ 'WP-CLI: Error Clearing Cache', 'error', err ]
+							else
+								@emitter.emit 'notification', [ 'WP-CLI: Cache Cleared!', 'success' ]
+								@wp.transient.delete [], {all: true}, (err,message) =>
+									if err
+										@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
+									else
+										@emitter.emit 'notification', [ 'WP-CLI: Transients Cleared!', 'success' ]
+
+	reset_permalinks: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Resetting Permalinks', 'info' ]
+		@wp.rewrite.structure ['/%postname%/'], (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Permalinks Reset!', 'success', message ]
+
+	clear_rewrite_rules: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Rewrite Rules', 'info' ]
+		@wp.rewrite.flush (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Rewrite Rules', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Rewrite Rules Cleared!', 'success', message ]
+
 	clear_cache: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Clearing Cache', 'info' ]
 		@wp.cache.flush (err,message) =>
@@ -256,6 +295,22 @@ module.exports = class WPCLI
 				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
 			else
 				@emitter.emit 'message', [ 'WP-CLI: Transients Cleared!', 'success', message ]
+
+	regenerate_thumbnails: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Regenerating Thumbnails', 'info' ]
+		@wp.media.regenerate [], {yes: true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Regenerating Thumbnails', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Thumbnails Regenerated!', 'success', message ]
+
+	import_media: (mediaPath) ->
+		@emitter.emit 'notification', [ 'WP-CLI: Importing Media', 'info' ]
+		@wp.media.import [mediaPath], (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Importing Media', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Media Imported!', 'success', message ]
 
 	onNotification: (callback) ->
 		@emitter.on('notification', callback)

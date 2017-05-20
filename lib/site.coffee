@@ -144,6 +144,12 @@ module.exports = class Site
 				if element.classList.contains('selected') or element.querySelector('.selected')
 					return true
 
+	getSelectedFile: ->
+		for sitePath in @paths
+			element = @treeView.entryForPath(sitePath)
+			if element
+				return element.querySelector('.selected')
+
 	addRoot: ->
 		atom.project.addPath(@root)
 		@notifications.add("#{@name.toUpperCase()} | Added Root")
