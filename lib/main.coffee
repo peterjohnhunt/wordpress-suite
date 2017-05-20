@@ -57,6 +57,7 @@ module.exports =
 				'package.json',
 				'lib/actions.coffee',
 				'lib/config.json',
+				'lib/info.coffee',
 				'lib/log-file.coffee',
 				'lib/main.coffee',
 				'lib/notifications.coffee',

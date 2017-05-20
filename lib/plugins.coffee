@@ -8,7 +8,7 @@ module.exports = class Plugins
 		@wp     = wp
 
 		@directory = null
-		@plugins = []
+		@menu = []
 
 		@emitter = new Emitter
 
@@ -23,18 +23,14 @@ module.exports = class Plugins
 
 	refresh: ->
 		@subscriptions?.dispose()
-		@plugins = []
+		@menu = []
 		@subscriptions = new CompositeDisposable
 		@setup()
 
 	setup: ->
 		@wp.plugin.list (err,plugins) =>
 			if not err
-				@plugins = plugins
-
-				menu = []
-				for plugin in @plugins
-
+				for plugin in plugins
 					@subscriptions.add atom.commands.add ".project-root",
 						"wordpress-suite:site:plugin:add-folder:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
@@ -48,29 +44,40 @@ module.exports = class Plugins
 						"wordpress-suite:site:plugin:update:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.update(name)
+						"wordpress-suite:site:plugin:delete:#{plugin.name}": (event) =>
+							name = event.type.split(':').pop()
+							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.delete(name)
 
-					menu.push({ label: plugin.name, submenu: [
-						{ label: 'Add Folder', command: "wordpress-suite:site:plugin:add-folder:#{plugin.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite()
-							plugin = site.wpcli.plugins.directory.getSubdirectory(name)
-							return not site.hasPath("#{plugin.getPath()}")
-						}
-						{ label: 'Activate', command: "wordpress-suite:site:plugin:activate:#{plugin.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.plugins.get(name).status is 'inactive'
-						}
-						{ label: 'Deactivate', command: "wordpress-suite:site:plugin:deactivate:#{plugin.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.plugins.get(name).status is 'active'
-						}
-						{ label: 'Update', command: "wordpress-suite:site:plugin:update:#{plugin.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.plugins.get(name).update is 'available'
-						}
-					], shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.plugins.get(@label) })
+					submenu = []
 
-				@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Plugins', submenu: menu, shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.hasPlugins() }] }] }
+					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:plugin:add-folder:#{plugin.name}", shouldDisplay: ->
+						name = @command.split(':').pop()
+						site = atom.wordpressSuite.getSelectedSite()
+						plugin = site.wpcli.plugins.directory.getSubdirectory(name)
+						return not site.hasPath("#{plugin.getPath()}")
+					})
+
+					if plugin.status is 'inactive'
+						submenu.push({ label: 'Activate', command: "wordpress-suite:site:plugin:activate:#{plugin.name}" })
+
+					if plugin.status is 'active'
+						submenu.push({ label: 'Deactivate', command: "wordpress-suite:site:plugin:deactivate:#{plugin.name}" })
+
+					if plugin.update is 'available'
+						submenu.push({ label: 'Update', command: "wordpress-suite:site:plugin:update:#{plugin.name}" })
+
+					submenu.push({ label: 'Delete', command: "wordpress-suite:site:plugin:delete:#{plugin.name}" })
+					submenu.push({ type: 'separator' })
+					submenu.push({ label: "Version: #{plugin.version}", enabled: false })
+					submenu.push({ label: "Status: #{plugin.status}", enabled: false })
+					submenu.push({ label: "Update: #{plugin.update}", enabled: false })
+
+					@menu.push({ label: plugin.name, submenu: submenu })
+
+		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Plugins', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.plugins.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.hasPlugins())}] }] }
+
+	getMenu: ->
+		return @menu
 
 	activate: (name) ->
 		@emitter.emit 'notification', [ "Activating #{name}", 'info' ]
@@ -99,16 +106,20 @@ module.exports = class Plugins
 				@emitter.emit 'message', [ "#{name} Updated", 'success', message ]
 				@refresh()
 
+	delete: (name) ->
+		@emitter.emit 'notification', [ "Deleting #{name}", 'info' ]
+		@wp.plugin.delete name, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Deleting #{name}", 'error', err ]
+			else
+				@emitter.emit 'message', [ "#{name} Deleted", 'success', message ]
+				@refresh()
+
 	onNotification: (callback) ->
 		@emitter.on('notification', callback)
 
 	onMessage: (callback) ->
 		@emitter.on('message', callback)
-
-	get: (name) ->
-		for plugin in @plugins
-			if plugin.name is name
-				return plugin
 
 	dispose: ->
 		@log "Disposed", 6
@@ -122,4 +133,4 @@ module.exports = class Plugins
 			@subscriptions = null
 			@emitter = null
 			@directory = null
-			@plugins = null
+			@menu = []

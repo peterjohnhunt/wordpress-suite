@@ -8,7 +8,7 @@ module.exports = class Themes
 		@wp     = wp
 
 		@directory = null
-		@themes = []
+		@menu = []
 
 		@emitter = new Emitter
 
@@ -23,18 +23,14 @@ module.exports = class Themes
 
 	refresh: ->
 		@subscriptions?.dispose()
-		@themes = []
+		@menu = []
 		@subscriptions = new CompositeDisposable
 		@setup()
 
 	setup: ->
 		@wp.theme.list (err,themes) =>
 			if not err
-				@themes = themes
-
-				menu = []
-				for theme in @themes
-
+				for theme in themes
 					@subscriptions.add atom.commands.add ".project-root",
 						"wordpress-suite:site:theme:add-folder:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
@@ -42,35 +38,40 @@ module.exports = class Themes
 						"wordpress-suite:site:theme:activate:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.activate(name)
-						"wordpress-suite:site:theme:deactivate:#{theme.name}": (event) =>
-							name = event.type.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.deactivate(name)
 						"wordpress-suite:site:theme:update:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.update(name)
+						"wordpress-suite:site:theme:delete:#{theme.name}": (event) =>
+							name = event.type.split(':').pop()
+							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.delete(name)
 
-					menu.push({ label: theme.name, submenu: [
-						{ label: 'Add Folder', command: "wordpress-suite:site:theme:add-folder:#{theme.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite()
-							theme = site.wpcli.themes.directory.getSubdirectory(name)
-							return not site.hasPath("#{theme.getPath()}")
-						}
-						{ label: 'Activate', command: "wordpress-suite:site:theme:activate:#{theme.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.themes.get(name).status is 'inactive'
-						}
-						{ label: 'Deactivate', command: "wordpress-suite:site:theme:deactivate:#{theme.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.themes.get(name).status is 'active'
-						}
-						{ label: 'Update', command: "wordpress-suite:site:theme:update:#{theme.name}", shouldDisplay: ->
-							name = @command.split(':').pop()
-							return atom.wordpressSuite.getSelectedSite().wpcli.themes.get(name).update is 'available'
-						}
-					], shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.themes.get(@label) })
+					submenu = []
 
-				@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: menu, shouldDisplay: -> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes() }] }] }
+					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:theme:add-folder:#{theme.name}", shouldDisplay: ->
+						name = @command.split(':').pop()
+						site = atom.wordpressSuite.getSelectedSite()
+						theme = site.wpcli.themes.directory.getSubdirectory(name)
+						return not site.hasPath("#{theme.getPath()}")
+					})
+
+					if theme.status is 'inactive'
+						submenu.push({ label: 'Activate', command: "wordpress-suite:site:theme:activate:#{theme.name}" })
+
+					if theme.update is 'available'
+						submenu.push({ label: 'Update', command: "wordpress-suite:site:theme:update:#{theme.name}" })
+
+					submenu.push({ label: 'Delete', command: "wordpress-suite:site:theme:delete:#{theme.name}" })
+					submenu.push({ type: 'separator' })
+					submenu.push({ label: "Version: #{theme.version}", enabled: false })
+					submenu.push({ label: "Status: #{theme.status}", enabled: false })
+					submenu.push({ label: "Update: #{theme.update}", enabled: false })
+
+					@menu.push({ label: theme.name, submenu: submenu })
+
+		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.themes.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes())}] }] }
+
+	getMenu: ->
+		return @menu
 
 	activate: (name) ->
 		@emitter.emit 'notification', [ "Activating #{name}", 'info' ]
@@ -79,15 +80,6 @@ module.exports = class Themes
 				@emitter.emit 'message', [ "Error Activating #{name}", 'error', err ]
 			else
 				@emitter.emit 'message', [ "#{name} Activated", 'success', message ]
-				@refresh()
-
-	deactivate: (name) ->
-		@emitter.emit 'notification', [ "Deactivating #{name}", 'info' ]
-		@wp.theme.deactivate name, (err,message) =>
-			if err
-				@emitter.emit 'message', [ "Error Deactivating #{name}", 'error', err ]
-			else
-				@emitter.emit 'message', [ "#{name} Deactivated", 'success', message ]
 				@refresh()
 
 	update: (name) ->
@@ -99,10 +91,14 @@ module.exports = class Themes
 				@emitter.emit 'message', [ "#{name} Updated", 'success', message ]
 				@refresh()
 
-	get: (name) ->
-		for theme in @themes
-			if theme.name is name
-				return theme
+	delete: (name) ->
+		@emitter.emit 'notification', [ "Deleting #{name}", 'info' ]
+		@wp.theme.delete name, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Deleting #{name}", 'error', err ]
+			else
+				@emitter.emit 'message', [ "#{name} Deleted", 'success', message ]
+				@refresh()
 
 	onNotification: (callback) ->
 		@emitter.on('notification', callback)
@@ -122,4 +118,4 @@ module.exports = class Themes
 			@subscriptions = null
 			@emitter = null
 			@directory = null
-			@themes = null
+			@menu = []

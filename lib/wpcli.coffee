@@ -5,6 +5,7 @@ command = require 'command-exists'
 
 Plugins = require './plugins'
 Themes = require './themes'
+Info = require './info'
 
 module.exports = class WPCLI
 
@@ -14,6 +15,10 @@ module.exports = class WPCLI
 		@log       = @logger "site.#{namespace}.wpcli"
 		@sitePath  = sitePath
 		@options   = {path: "#{sitePath}/"}
+
+		@plugins = null
+		@themes = null
+		@info = null
 
 		@status = {
 			yml: null
@@ -36,6 +41,9 @@ module.exports = class WPCLI
 
 	refresh: ->
 		@subscriptions?.dispose()
+		@plugins = null
+		@themes = null
+		@info = null
 		@status = {
 			yml: null
 			exists: null
@@ -45,6 +53,7 @@ module.exports = class WPCLI
 			database: null
 			installed: null
 			ready: null
+			update: null
 		}
 		@subscriptions = new CompositeDisposable
 		@setup()
@@ -85,6 +94,9 @@ module.exports = class WPCLI
 				if @status.core
 					@log 'core exists', 6
 					@check_config()
+					@wp.core.check_update (err,update) =>
+						if update
+							@status.update = true
 				else
 					@status.ready = true
 
@@ -127,14 +139,20 @@ module.exports = class WPCLI
 					@subscriptions.add @themes = new Themes(@wp, @logger, @namespace)
 					@subscriptions.add @themes.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
 					@subscriptions.add @themes.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@subscriptions.add @info = new Info(@wp, @logger, @namespace)
+					@subscriptions.add @info.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @info.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
 					@emitter.emit 'notification', [ 'WP-CLI: Initialized' ]
 				@status.ready = true
 
 	hasPlugins: ->
-		return @plugins?.plugins.length > 0
+		return @plugins?.getMenu().length > 0
 
 	hasThemes: ->
-		return @themes?.themes.length > 0
+		return @themes?.getMenu().length > 0
+
+	hasInfo: ->
+		return @info?.getMenu().length > 0
 
 	full_setup: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Creating Site', 'info' ]
@@ -216,6 +234,16 @@ module.exports = class WPCLI
 			else
 				@emitter.emit 'message', [ 'WP-CLI: Wordpress Installed!', 'success', message ]
 				@check_installed()
+
+	update_wordpress: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Updating Wordpress', 'info' ]
+		@wp.core.update (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Updating Wordpress', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Wordpress Updated!', 'success', message ]
+				@info?.version()
+				@status.update = null
 
 	export_database: (dbname, callback) ->
 		if not dbname?
@@ -312,6 +340,14 @@ module.exports = class WPCLI
 			else
 				@emitter.emit 'message', [ 'WP-CLI: Transients Cleared!', 'success', message ]
 
+	verify_checksums: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Verifying Checksums', 'info' ]
+		@wp.core.verify_checksums (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Verifying Checksums', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Checksums Verified!', 'success', message ]
+
 	regenerate_thumbnails: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Regenerating Thumbnails', 'info' ]
 		@wp.media.regenerate [], {yes: true}, (err,message) =>
@@ -348,6 +384,7 @@ module.exports = class WPCLI
 			@subscriptions = null
 			@plugins = null
 			@themes = null
+			@info = null
 			@status = {
 				yml: null
 				exists: null
@@ -356,5 +393,5 @@ module.exports = class WPCLI
 				config: null
 				database: null
 				installed: null
-				ready: null
+				update: null
 			}

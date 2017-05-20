@@ -30,6 +30,8 @@ module.exports = class Actions
 			"wordpress-suite:site:wp-cli:clear-rewrite-rules": -> atom.wordpressSuite.getSelectedSite().wpcli.clear_rewrite_rules()
 			"wordpress-suite:site:wp-cli:clear-cache": -> atom.wordpressSuite.getSelectedSite().wpcli.clear_cache()
 			"wordpress-suite:site:wp-cli:clear-transients": -> atom.wordpressSuite.getSelectedSite().wpcli.clear_transients()
+			"wordpress-suite:site:wp-cli:verify-checksums": -> atom.wordpressSuite.getSelectedSite().wpcli.verify_checksums()
+			"wordpress-suite:site:wp-cli:update-wordpress": -> atom.wordpressSuite.getSelectedSite().wpcli.update_wordpress()
 			"wordpress-suite:site:wp-cli:export-database": -> atom.wordpressSuite.getSelectedSite().wpcli.export_database()
 			"wordpress-suite:site:wp-cli:import-database": -> atom.wordpressSuite.getSelectedSite().wpcli.import_database()
 			"wordpress-suite:site:wp-cli:optimize-database": -> atom.wordpressSuite.getSelectedSite().wpcli.optimize_database()
@@ -47,25 +49,21 @@ module.exports = class Actions
 				{ label: 'Open Log', command: "wordpress-suite:site:log-file:open", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasLogFile() }
 				{ label: 'Clear Log', command: "wordpress-suite:site:log-file:clear", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().logFileHasMessages() }
 				{ type: 'separator' }
+				{ label: 'Update Wordpress', command: "wordpress-suite:site:wp-cli:update-wordpress", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('update') }
+				{ type: 'separator' }
 				{ label: 'Export Database', command: "wordpress-suite:site:wp-cli:export-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
 				{ label: 'Import Database', command: "wordpress-suite:site:wp-cli:import-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
 				{ type: 'separator' }
 				{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 				{ type: 'separator' }
 				{ label: 'Refresh', command: "wordpress-suite:site:refresh" }
-				{ type: 'separator', shouldDisplay: ->
-					site = atom.wordpressSuite.getSelectedSite()
-					return site.hasRoot() isnt true or site.hasLogFile() or site.logFileHasMessages()
-				}
+				{ type: 'separator' }
 				{ label: 'Setup', submenu: [
 					{ label: 'Full Setup', command: "wordpress-suite:site:wp-cli:full-setup", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
 						return site.hasWPCLI('initialized') and not site.hasWPCLI('installed')
 					}
-					{ type: 'separator', shouldDisplay: ->
-						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('initialized') and not site.hasWPCLI('installed')
-					}
+					{ type: 'separator' }
 					{ label: 'Download Wordpress', command: "wordpress-suite:site:wp-cli:download-wordpress", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
 						return site.hasWPCLI('initialized') and not site.hasWPCLI('core')
@@ -107,6 +105,8 @@ module.exports = class Actions
 					{ label: 'Clear Rewrite Rules', command: "wordpress-suite:site:wp-cli:clear-rewrite-rules", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ label: 'Clear Cache', command: "wordpress-suite:site:wp-cli:clear-cache", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ label: 'Clear Transients', command: "wordpress-suite:site:wp-cli:clear-transients", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+					{ type: 'separator' }
+					{ label: 'Verify Checksums', command: "wordpress-suite:site:wp-cli:verify-checksums", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
 					{ type: 'separator' }
 					{ label: 'Optimize Database', command: "wordpress-suite:site:wp-cli:optimize-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
 					{ label: 'Repair Database', command: "wordpress-suite:site:wp-cli:repair-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }

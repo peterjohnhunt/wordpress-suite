@@ -2,8 +2,8 @@
 path = require 'path'
 
 WPCLI = require './wpcli'
-Notifications = require './notifications'
 LogFile = require './log-file'
+Notifications = require './notifications'
 
 module.exports = class Site
 
@@ -190,8 +190,8 @@ module.exports = class Site
 			@directory = null
 			@name = null
 			@paths = null
-			@notifications = null
-			@logFile = null
 			@wpcli = null
+			@logFile = null
+			@notifications = null
 			@treeView = null
 			@subscriptions = null
