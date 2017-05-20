@@ -83,7 +83,7 @@ module.exports = class Themes
 
 	deactivate: (name) ->
 		@emitter.emit 'notification', [ "Deactivating #{name}", 'info' ]
-		@wp.theme.activate name, (err,message) =>
+		@wp.theme.deactivate name, (err,message) =>
 			if err
 				@emitter.emit 'message', [ "Error Deactivating #{name}", 'error', err ]
 			else
