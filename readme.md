@@ -1,5 +1,8 @@
 ![Wordpress Suite](https://raw.githubusercontent.com/peterjohnhunt/wordpress-suite/master/assets/logo.png "Wordpress Suite")
 
+todo:
+wp cli yml config
+
 ## Summary
 **Wordpress Suite** is an ever expanding suite of Wordpress tools, accessible right from atom's interface!
 * [Installation](#installation)

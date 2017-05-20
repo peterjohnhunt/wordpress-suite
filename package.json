@@ -1,6 +1,6 @@
 {
   "name": "wordpress-suite",
-  "main": "./lib/wordpress-suite",
+  "main": "./lib/main",
   "version": "0.4.4",
   "description": "Debug Watcher, WP-CLI Commands, Quick Tools.",
   "keywords": [
@@ -23,9 +23,14 @@
 	"yamljs": "^0.2.8"
   },
   "consumedServices": {
+	"debug": {
+	  "versions": {
+		"^0.0.1": "consumeDebug"
+	  }
+	},
 	"autoreload": {
 	  "versions": {
-		"^0.0.1": "consumeAutoReload"
+		"^0.0.1": "consumeAutoreload"
 	  }
 	}
   }

@@ -1,78 +1,41 @@
-Wordpress = require './wordpress'
-config = require './config'
-{CompositeDisposable, Directory, File} = require 'atom'
+{CompositeDisposable, Disposable} = require 'atom'
+command = require 'command-exists'
+Projects = require './projects'
+Actions = require './actions'
 
-Array.prototype.difference = (a) ->
-	return @filter (i) ->
-		return a.indexOf(i) < 0
+module.exports = class WordpressSuite
 
-module.exports = wordpressSuite =
+	constructor: (logger) ->
+		@logger = logger
+		@log = @logger "core"
 
-	config: config
-
-	consumeAutoReload: (reloader) ->
-		reloader(pkg:"wordpress-suite",folders:["lib/","node_modules/","menus/"],files:["package.json","lib/wordpress-suite.coffee","lib/wordpress.coffee","lib/wpcli.coffee","lib/debugger.coffee","menus/atom-wordpress.cson"])
-
-	activate: ->
-		if atom.inDevMode()
-			try
-				@main()
-			catch e
-				console.log e
-		else
-			@main()
-
-	main: ->
-		# Variables
-		@sites = [];
-		@projectPaths = atom.project.getPaths();
-
-		# Subscriptions
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add atom.project.onDidChangePaths (projectPaths) => @foldersChanged(projectPaths)
+		@subscriptions.add @projects = new Projects(@logger)
+		@subscriptions.add @actions = new Actions(@logger)
 
-		# Initial Setup
-		@foldersAdded(@projectPaths)
+		@log 'Created', 6
 
-	folderGetProjectId: (projectPath) ->
-		for site, index in @sites
-			if site.isRelatedPath(projectPath)
-				return index
-		return false
+		new Disposable()
 
-	foldersChanged: (projectPaths) ->
-		if projectPaths.length > @projectPaths.length
-			addedPaths = projectPaths.difference(@projectPaths);
-			@foldersAdded(addedPaths)
-		else
-			removedPaths = @projectPaths.difference(projectPaths);
-			@foldersRemoved(removedPaths)
-		@projectPaths = projectPaths
+	getSelectedSite: ->
+		for site in @projects.sites
+			return site if site.isSelected()
 
-	foldersAdded: (projectPaths) ->
-		for projectPath in projectPaths
-			site_id = @folderGetProjectId(projectPath)
-			if site_id is false
-				site = new Wordpress(projectPath)
-				@sites.push(site)
-			else
-				site = @sites[site_id]
-				site.addRelatedPath(projectPath)
+	muteNotification: (message, sitePath) ->
+		site = @projects.getSite(sitePath)
+		site.notifications.mute(message)
 
-	foldersRemoved: (projectPaths) ->
-		for projectPath in projectPaths
-			site_id = @folderGetProjectId(projectPath)
-			if site_id isnt false
-				site = @sites[site_id]
-				site.removeRelatedPath(projectPath)
-				if site.sitePaths.length is 0
-					@sites[site_id].dispose()
-					@sites.splice(site_id,1);
+	unmuteNotification: (message, sitePath) ->
+		site = @projects.getSite(sitePath)
+		site.notifications.unmute(message)
 
-	deactivate: ->
-		# Remove All Projects
-		for site in @sites
-			site.dispose()
+	dispose: ->
+		@log 'Deleted', 6
 
-		# Clean Up Subscriptions
 		@subscriptions?.dispose()
+
+		if atom.inDevMode()
+			@log = ->
+			@log = -> ->
+			@projects = null
+			@actions = null

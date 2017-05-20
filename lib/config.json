@@ -1,3 +1,65 @@
 {
-	
+	"wpcli":{
+		"title": "WP CLI",
+		"type": "object",
+		"order": 1,
+		"properties":{
+			"dbuser":{
+				"title":"MySQL Username",
+				"type":"string",
+				"default":"root",
+				"order": 1
+			},
+			"dbpass":{
+				"title":"MySQL Password",
+				"type":"string",
+				"default":"root",
+				"order": 2
+			},
+			"dbhost":{
+				"title":"MySQL Host",
+				"type":"string",
+				"default":"localhost",
+				"order": 3
+			},
+			"url":{
+				"title":"Site URL",
+				"description":"%%PROJECTNAME%% will dynamically be replaced with the root project folder name",
+				"type":"string",
+				"default":"localhost/%%PROJECTNAME%%",
+				"order": 4
+			},
+			"admin_user":{
+				"title":"Wordpress User",
+				"type":"string",
+				"default":"root",
+				"order": 5
+			},
+			"admin_password":{
+				"title":"Wordpress Password",
+				"type":"string",
+				"default":"root",
+				"order": 6
+			},
+			"admin_email":{
+				"title":"Wordpress Email",
+				"type":"string",
+				"default":"admin@localhost.com",
+				"order": 7
+			},
+			"dbname":{
+				"title":"Database Export Name",
+				"type":"string",
+				"default":"mysql.sql",
+				"order": 8
+			}
+		}
+	},
+	"debug":{
+		"title": "Debug Level",
+		"type": "integer",
+		"default": 0,
+		"minimum": 0,
+		"order": 2
+	}
 }
