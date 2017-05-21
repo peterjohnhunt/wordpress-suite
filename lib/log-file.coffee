@@ -21,18 +21,17 @@ module.exports = class LogFile
 	refresh: ->
 		@subscriptions?.dispose()
 		@file = null
-		@folder = null
 		@watching = null
 		@contents = ''
 		@subscriptions = new CompositeDisposable
 		@setup()
 
 	setup: ->
-		folder = new Directory(@sitePath).getSubdirectory('wp-content')
+		root = new Directory(@sitePath)
+		folder = root.getSubdirectory('wp-content')
 		folder.exists().then (exists) =>
 			if exists
-				@folder = folder
-				@file = @folder.getFile('debug.log')
+				@file = folder.getFile('debug.log')
 
 				@subscriptions.add @file.onDidChange => @onDidChange()
 				# @subscriptions.add @file.onDidRename => console.log('renamed')
@@ -40,12 +39,18 @@ module.exports = class LogFile
 
 				@watching = true
 
-				@emitter.emit 'notification', [ 'Log File: Watching For Messages' ]
+				@create()
 
-				@file.create().then (created) =>
-					if not created
-						@file.read().then (contents) =>
-							@contents = contents
+				@emitter.emit 'notification', [ 'Log File: Watching For Messages' ]
+			else
+				@subscriptions.add root.onDidChange =>
+					@refresh()
+
+	create: ->
+		@file.create().then (created) =>
+			if not created
+				@file.read().then (contents) =>
+					@contents = contents
 
 	clear: ->
 		@file.write('')
@@ -112,7 +117,6 @@ module.exports = class LogFile
 			@log = ->
 			@sitePath = null
 			@file = null
-			@folder = null
 			@watching = null
 			@contents = ''
 			@emitter = null

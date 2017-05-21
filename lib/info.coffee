@@ -10,13 +10,13 @@ module.exports = class Info
 		@emitter = new Emitter
 
 		@menu = {
-			name: null
-			url: null
-			version: null
-			separator: { type:'separator' }
 			posttypes: null
 			taxonomies: null
 			roles: null
+			separator: { type:'separator' }
+			name: null
+			url: null
+			version: null
 		}
 
 		@subscriptions = new CompositeDisposable
@@ -28,13 +28,13 @@ module.exports = class Info
 	refresh: ->
 		@subscriptions?.dispose()
 		@menu = {
-			name: null
-			url: null
-			version: null
-			separator: { type:'separator' }
 			posttypes: null
 			taxonomies: null
 			roles: null
+			separator: { type:'separator' }
+			name: null
+			url: null
+			version: null
 		}
 		@subscriptions = new CompositeDisposable
 		@setup()

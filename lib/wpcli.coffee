@@ -159,6 +159,7 @@ module.exports = class WPCLI
 		@wp.core.download (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Download Error', 'error', err ]
+				@check_core()
 			else
 				@emitter.emit 'notification', [ 'WP-CLI: Wordpress Downloaded!' ]
 
@@ -169,11 +170,13 @@ module.exports = class WPCLI
 				@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
 					if err
 						@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
+						@check_core()
 					else
 						@emitter.emit 'notification', [ 'WP-CLI: Config Created!', 'success' ]
 						@wp.db.create (err,message) =>
 							if err
 								@emitter.emit 'message', [ 'WP-CLI: Error Creating Database', 'error', err ]
+								@check_core()
 							else
 								@emitter.emit 'notification', [ 'WP-CLI: Database Created!', 'success' ]
 								url = atom.config.get('wordpress-suite.wpcli.url').replace('%%PROJECTNAME%%', @namespace)
@@ -187,7 +190,7 @@ module.exports = class WPCLI
 									else
 										@emitter.emit 'notification', [ 'WP-CLI: Wordpress Installed!', 'success' ]
 										@emitter.emit 'message', [ 'WP-CLI: Site Created!', 'success' ]
-										@check_core()
+									@check_core()
 
 
 	download_wordpress: ->
@@ -205,7 +208,7 @@ module.exports = class WPCLI
 		dbuser = atom.config.get('wordpress-suite.wpcli.dbuser')
 		dbpass = atom.config.get('wordpress-suite.wpcli.dbpass')
 		dbhost = atom.config.get('wordpress-suite.wpcli.dbhost')
-		@wp.core.config [dbname, dbuser], {dbpass: dbpass, dbhost: dbhost}, (err,message) =>
+		@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
 			else
@@ -228,7 +231,7 @@ module.exports = class WPCLI
 		admin_user = atom.config.get('wordpress-suite.wpcli.admin_user')
 		admin_password = atom.config.get('wordpress-suite.wpcli.admin_password')
 		admin_email = atom.config.get('wordpress-suite.wpcli.admin_email')
-		@wp.core.install [url, title, admin_user], {admin_password: admin_password, admin_email: admin_email}, (err,message) =>
+		@wp.core.install {url, title, admin_user, admin_password, admin_email}, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Installing Wordpress', 'error', err ]
 			else
@@ -244,6 +247,15 @@ module.exports = class WPCLI
 				@emitter.emit 'message', [ 'WP-CLI: Wordpress Updated!', 'success', message ]
 				@info?.version()
 				@status.update = null
+				@update_database()
+
+	update_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Updating Database', 'info' ]
+		@wp.core.update_db (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Updating Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Updated!', 'success', message ]
 
 	export_database: (dbname, callback) ->
 		if not dbname?
@@ -287,7 +299,7 @@ module.exports = class WPCLI
 
 	clear_everything: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Clearing Everything', 'info' ]
-		@wp.rewrite.structure ['/%postname%/'], (err,message) =>
+		@wp.rewrite.structure '/%postname%/', (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
 			else
@@ -302,7 +314,7 @@ module.exports = class WPCLI
 								@emitter.emit 'message', [ 'WP-CLI: Error Clearing Cache', 'error', err ]
 							else
 								@emitter.emit 'notification', [ 'WP-CLI: Cache Cleared!', 'success' ]
-								@wp.transient.delete [], {all: true}, (err,message) =>
+								@wp.transient.delete {all: true}, (err,message) =>
 									if err
 										@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
 									else
@@ -310,7 +322,7 @@ module.exports = class WPCLI
 
 	reset_permalinks: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Resetting Permalinks', 'info' ]
-		@wp.rewrite.structure ['/%postname%/'], (err,message) =>
+		@wp.rewrite.structure '/%postname%/', (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
 			else
@@ -334,7 +346,7 @@ module.exports = class WPCLI
 
 	clear_transients: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Clearing Transients', 'info' ]
-		@wp.transient.delete [], {all: true}, (err,message) =>
+		@wp.transient.delete {all: true}, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
 			else
@@ -350,7 +362,7 @@ module.exports = class WPCLI
 
 	regenerate_thumbnails: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Regenerating Thumbnails', 'info' ]
-		@wp.media.regenerate [], {yes: true}, (err,message) =>
+		@wp.media.regenerate {yes: true}, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Regenerating Thumbnails', 'error', err ]
 			else
@@ -358,7 +370,7 @@ module.exports = class WPCLI
 
 	import_media: (mediaPath) ->
 		@emitter.emit 'notification', [ 'WP-CLI: Importing Media', 'info' ]
-		@wp.media.import [mediaPath], (err,message) =>
+		@wp.media.import mediaPath, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Importing Media', 'error', err ]
 			else

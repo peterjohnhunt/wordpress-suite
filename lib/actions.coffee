@@ -61,7 +61,7 @@ module.exports = class Actions
 				{ label: 'Setup', submenu: [
 					{ label: 'Full Setup', command: "wordpress-suite:site:wp-cli:full-setup", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('initialized') and not site.hasWPCLI('installed')
+						return site.hasWPCLI('initialized') and not site.hasWPCLI('core') and not site.hasWPCLI('installed')
 					}
 					{ type: 'separator' }
 					{ label: 'Download Wordpress', command: "wordpress-suite:site:wp-cli:download-wordpress", shouldDisplay: ->
