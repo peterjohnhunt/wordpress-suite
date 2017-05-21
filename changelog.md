@@ -1,9 +1,29 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.5...v1.0.0) | 2017-05-21
+### Added
+ - Completely Refactored and Upgraded to complete a v1.0.0
+ - Full WP-CLI Integration Including:
+	 - Wordpress Setup (Database / Config / Install / Update)
+	 - Site Info (Post Types / Taxonomies / User Roles)
+	 - Clear Caches (Object / Permalinks / Transients)
+	 - Optimizations (Regenerate Thumbnails / Database / Checksums / Repair Database)
+	 - Import Files as Media
+	 - Plugin Administration (Activation / Deactivation / Info / Delete / Add Folder)
+	 - Theme Administration (Activation / Info / Delete / Add Folder)
+	 - WP-CLI Update Prompting
+ - Site Can Now Be Refreshed without having to refresh Atom entirely
+ - Smart Menus - Only show menu commands that are relevant to the current site status
+ - Config Options for WPCLI Site Setup
+ - Modularized Code for Easy Additions
+ - Much More Efficient Menus / Smart Menus
+ - Better Notification Management
+ - Updated Readme
+
 ## [v0.4.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.4...v0.4.5) | 2017-01-08
 ### Fixed
- - Initialization Conditionals ([Bug #5](https://github.com/peterjohnhunt/wordpress-suite/issues/5))
+- Initialization Conditionals ([Bug #5](https://github.com/peterjohnhunt/wordpress-suite/issues/5))
 
 ## [v0.4.4](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.3...v0.4.4) | 2016-12-06
 ### Fixed

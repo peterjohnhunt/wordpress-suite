@@ -1,103 +1,65 @@
 {
-	"notifications": {
+	"wpcli":{
+		"title": "WP CLI",
 		"type": "object",
-		"title": "Notifications",
-		"properties": {
-			"info": {
-				"type": "object",
-				"title": "Information",
-				"order": 1,
-				"properties": {
-					"show": {
-						"title": "Show Messages",
-						"type": "boolean",
-						"default": "true",
-						"order": 1
-					},
-					"autodismiss": {
-						"title": "Auto Dismiss",
-						"type": "boolean",
-						"default": "false",
-						"order": 2
-					}
-				}
+		"order": 1,
+		"properties":{
+			"dbuser":{
+				"title":"MySQL Username",
+				"type":"string",
+				"default":"root",
+				"order": 1
 			},
-			"notice": {
-				"type": "object",
-				"title": "Notice",
-				"order": 2,
-				"properties": {
-					"show": {
-						"title": "Show Messages",
-						"type": "boolean",
-						"default": "true",
-						"order": 1
-					},
-					"autodismiss": {
-						"title": "Auto Dismiss",
-						"type": "boolean",
-						"default": "false",
-						"order": 2
-					}
-				}
+			"dbpass":{
+				"title":"MySQL Password",
+				"type":"string",
+				"default":"root",
+				"order": 2
 			},
-			"deprecation": {
-				"type": "object",
-				"title": "Deprecation",
-				"order": 3,
-				"properties": {
-					"show": {
-						"title": "Show Messages",
-						"type": "boolean",
-						"default": "true",
-						"order": 1
-					},
-					"autodismiss": {
-						"title": "Auto Dismiss",
-						"type": "boolean",
-						"default": "false",
-						"order": 2
-					}
-				}
+			"dbhost":{
+				"title":"MySQL Host",
+				"type":"string",
+				"default":"localhost",
+				"order": 3
 			},
-			"warning": {
-				"type": "object",
-				"title": "Warning",
-				"order": 4,
-				"properties": {
-					"show": {
-						"title": "Show Messages",
-						"type": "boolean",
-						"default": "true",
-						"order": 1
-					},
-					"autodismiss": {
-						"title": "Auto Dismiss",
-						"type": "boolean",
-						"default": "false",
-						"order": 2
-					}
-				}
+			"url":{
+				"title":"Site URL",
+				"description":"%%PROJECTNAME%% will dynamically be replaced with the root project folder name",
+				"type":"string",
+				"default":"localhost/%%PROJECTNAME%%",
+				"order": 4
 			},
-			"error": {
-				"type": "object",
-				"title": "Error",
-				"order": 5,
-				"properties": {
-					"show": {
-						"title": "Show Messages",
-						"type": "boolean",
-						"default": "true",
-						"order": 1
-					},
-					"autodismiss": {
-						"title": "Auto Dismiss",
-						"type": "boolean",
-						"default": "false",
-						"order": 2
-					}
-				}
+			"admin_user":{
+				"title":"Wordpress User",
+				"type":"string",
+				"default":"root",
+				"order": 5
+			},
+			"admin_password":{
+				"title":"Wordpress Password",
+				"type":"string",
+				"default":"root",
+				"order": 6
+			},
+			"admin_email":{
+				"title":"Wordpress Email",
+				"type":"string",
+				"default":"admin@localhost.com",
+				"order": 7
+			},
+			"dbname":{
+				"title":"Database Export Name",
+				"type":"string",
+				"default":"mysql.sql",
+				"order": 8
 			}
 		}
+	},
+	"debug":{
+		"title": "Debug Level",
+		"type": "integer",
+		"default": 0,
+		"minimum": 0,
+		"order": 2
 	}
 }

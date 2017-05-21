@@ -1,85 +1,78 @@
-Wordpress = require './wordpress'
-config = require './config'
-{CompositeDisposable, Directory, File} = require 'atom'
+{CompositeDisposable, Disposable} = require 'atom'
+WP = require 'wp-cli'
+command = require 'command-exists'
+Projects = require './projects'
+Actions = require './actions'
+Views = require './views'
 
-Array.prototype.difference = (a) ->
-	return @filter (i) ->
-		return a.indexOf(i) < 0
+module.exports = class WordpressSuite
 
-module.exports = wordpressSuite =
+	constructor: (logger) ->
+		@logger = logger
+		@log = @logger "core"
 
-	config: config
+		@wp = null
+		@views = null
 
-	consumeAutoreload: (reloader) ->
-		reloader(pkg:"wordpress-suite",files:["package.json"],folders:["lib/","menus/","node_modules/"])
-
-	activate: ->
-		if atom.inDevMode()
-			try
-				@main()
-			catch e
-				console.log e
-		else
-			@main()
-
-	main: ->
-		# Variables
-		@sites = [];
-		@projectPaths = atom.project.getPaths();
-
-		# Subscriptions
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add atom.project.onDidChangePaths (projectPaths) => @foldersChanged(projectPaths)
+		@subscriptions.add @projects = new Projects(@logger)
+		@subscriptions.add @actions = new Actions(@logger)
 
-		# Initial Setup
-		@foldersAdded(@projectPaths)
+		# @subscriptions.add atom.workspace.addOpener (uri) =>
+		# 	if uri.startsWith('atom://wordpress-suite')
+		# 		if not @views? or @views.destroyed
+		# 			@views = new Views(@logger)
+		# 		@views.create(uri)
+		# 		return @views
 
-	folderGetProjectId: (projectPath) ->
-		for site, index in @sites
-			if site.isRelatedPath(projectPath)
-				return index
-		return false
+		command 'wp', (err,exists) =>
+			if exists
+				WP.discover (wp) =>
+					@wp = wp
+					wp.cli.check_update (err, update) =>
+						if update
+							atom.notifications.add('info', 'WP-CLI Update Available:', {
+								dismissable: true,
+								detail: update,
+								buttons: [
+									{ text: 'Update', className: 'btn-update', onDidClick: ->
+										@removeNotification()
+										atom.notifications.add('info', 'Updating WP-CLI')
+										atom.wordpressSuite.wp.cli.update (err,message) =>
+											if err
+												atom.notifications.add('error', 'Error Updating WP-CLI', {dismissable: true, detail: err})
+											else
+												atom.notifications.add('success', 'Updated WP-CLI', {dismissable: true, detail: message})
 
-	foldersChanged: (projectPaths) ->
-		if projectPaths.length > @projectPaths.length
-			addedPaths = projectPaths.difference(@projectPaths);
-			@foldersAdded(addedPaths)
-		else
-			removedPaths = @projectPaths.difference(projectPaths);
-			@foldersRemoved(removedPaths)
-		@projectPaths = projectPaths
+									}
+								]
+							})
 
-	foldersAdded: (projectPaths) ->
-		for projectPath in projectPaths
-			site_id = @folderGetProjectId(projectPath)
-			if site_id is false
-				root = new Directory(projectPath.split('wp-content', 1)[0])
-				if root.getSubdirectory('wp-content').existsSync()
-					site = new Wordpress(root)
-					site.addRelatedPath(projectPath)
-					@sites.push(site)
-				else if root.getFile('wp-cli.yml').existsSync()
-					site = new Wordpress(root)
-					site.addRelatedPath(projectPath)
-					@sites.push(site)
-			else
-				site = @sites[site_id]
-				site.addRelatedPath(projectPath)
+		@log 'Created', 6
 
-	foldersRemoved: (projectPaths) ->
-		for projectPath in projectPaths
-			site_id = @folderGetProjectId(projectPath)
-			if site_id isnt false
-				site = @sites[site_id]
-				site.removeRelatedPath(projectPath)
-				if site.sitePaths.length is 0
-					@sites[site_id].dispose()
-					@sites.splice(site_id,1);
+		new Disposable()
 
-	deactivate: ->
-		# Remove All Projects
-		for site in @sites
-			site.dispose()
+	getSelectedSite: ->
+		for site in @projects.sites
+			return site if site.isSelected()
 
-		# Clean Up Subscriptions
+	muteNotification: (message, sitePath) ->
+		site = @projects.getSite(sitePath)
+		site.notifications.mute(message)
+
+	unmuteNotification: (message, sitePath) ->
+		site = @projects.getSite(sitePath)
+		site.notifications.unmute(message)
+
+	dispose: ->
+		@log 'Deleted', 6
+
 		@subscriptions?.dispose()
+
+		if atom.inDevMode()
+			@log = ->
+			@log = -> ->
+			@projects = null
+			@actions = null
+			@views = null
+			@wp = null

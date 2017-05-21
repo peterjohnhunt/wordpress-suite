@@ -1,110 +1,409 @@
+{CompositeDisposable, Disposable, Emitter, Directory} = require 'atom'
 WP = require 'wp-cli'
 yml = require 'yamljs'
 command = require 'command-exists'
-{CompositeDisposable, Emitter} = require 'atom'
+
+Plugins = require './plugins'
+Themes = require './themes'
+Info = require './info'
 
 module.exports = class WPCLI
-	constructor: (directory) ->
+
+	constructor: (sitePath,logger,namespace) ->
+		@namespace = namespace
+		@logger    = logger
+		@log       = @logger "site.#{namespace}.wpcli"
+		@sitePath  = sitePath
+		@options   = {path: "#{sitePath}/"}
+
+		@plugins = null
+		@themes = null
+		@info = null
+
+		@status = {
+			yml: null
+			exists: null
+			initialized: null
+			core: null
+			config: null
+			database: null
+			installed: null
+			ready: null
+		}
+
 		@emitter = new Emitter
-		@root = directory
-		@config = @root.getPath()
 
 		@subscriptions = new CompositeDisposable
-		@subscriptions.add atom.project.onDidChangePaths => @emitter.emit 'update'
 
+		@setup()
+
+		new Disposable()
+
+	refresh: ->
+		@subscriptions?.dispose()
+		@plugins = null
+		@themes = null
+		@info = null
+		@status = {
+			yml: null
+			exists: null
+			initialized: null
+			core: null
+			config: null
+			database: null
+			installed: null
+			ready: null
+			update: null
+		}
+		@subscriptions = new CompositeDisposable
+		@setup()
+
+	setup: ->
+		config = new Directory(@sitePath).getFile('wp-cli.yml')
+		config.exists().then (exists) =>
+			@status.yml = exists
+			if exists
+				config.read().then (contents) =>
+					@options = yml.parse(contents)
+					@check_command()
+					if not @options.path
+						@options.path = @sitePath
+			else
+				@check_command()
+
+	check_command: ->
 		command 'wp', (err,exists) =>
-			if not exists
-				@emitter.emit 'warning', 'WP CLI is not installed.\n \nFor additional features download and install wp-cli.\n \nFree from: http://wp-cli.org/'
+			@status.exists = exists
+			if @status.exists
+				@log "Exists", 6
+
+				WP.discover @options, (wp) =>
+					@status.initialized = true
+					@wp = wp
+					@check_core()
+
 			else
-				@main()
+				@log "Does Not Exist", 4
 
-	main: ->
-		config_path = @root.getFile('wp-cli.yml')
-		config_path.exists().then (exists) =>
-			if exists
-				config_path.read().then (contents) =>
-					if contents
-						parsed = yml.parse(contents)
-						if parsed.path
-							@config = @root.getSubdirectory(parsed.path).getPath()
-					@discover()
+	check_core: ->
+		@log 'checking core', 6
+		if @status.initialized
+			@wp.core.version (err,installed) =>
+				@log 'handling core check', 6
+				@status.core = not err
+				if @status.core
+					@log 'core exists', 6
+					@check_config()
+					@wp.core.check_update (err,update) =>
+						if update
+							@status.update = true
+				else
+					@status.ready = true
+
+	check_config: ->
+		@log 'checking config', 6
+		if @status.core
+			config = new Directory(@options.path).getFile('wp-config.php')
+			config.exists().then (exists) =>
+				@log 'handling config check', 6
+				@status.config = exists
+				if @status.config
+					@log 'config exists', 6
+					@check_db()
+				else
+					@status.ready = true
+
+	check_db: ->
+		@log 'checking db', 6
+		if @status.config
+			@wp.db.check (err) =>
+				@log 'handling db check', 6
+				@status.database = not err
+				if @status.database
+					@log 'db connected', 6
+					@check_installed()
+				else
+					@status.ready = true
+
+	check_installed: ->
+		@log 'checking installed', 6
+		if @status.database
+			@wp.core.is_installed (err) =>
+				@log 'handling installed check', 6
+				@status.installed = not err
+				if @status.installed
+					@log 'is installed', 6
+					@subscriptions.add @plugins = new Plugins(@wp, @logger, @namespace)
+					@subscriptions.add @plugins.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @plugins.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@subscriptions.add @themes = new Themes(@wp, @logger, @namespace)
+					@subscriptions.add @themes.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @themes.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@subscriptions.add @info = new Info(@wp, @logger, @namespace)
+					@subscriptions.add @info.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @info.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@emitter.emit 'notification', [ 'WP-CLI: Initialized' ]
+				@status.ready = true
+
+	hasPlugins: ->
+		return @plugins?.getMenu().length > 0
+
+	hasThemes: ->
+		return @themes?.getMenu().length > 0
+
+	hasInfo: ->
+		return @info?.getMenu().length > 0
+
+	full_setup: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Creating Site', 'info' ]
+		@wp.core.download (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Download Error', 'error', err ]
+				@check_core()
 			else
-				@discover()
+				@emitter.emit 'notification', [ 'WP-CLI: Wordpress Downloaded!' ]
 
-		@emitter.emit 'main'
-
-	discover: ->
-		WP.discover { path: @config }, (wp) =>
-			@wp = wp
-
-			@wp.option.get 'blogname', (err,data) =>
-				if err
-					@emitter.emit 'error', err
-				else
-					@emitter.emit 'name', data
-
-			@emitter.emit 'discover'
-
-	export: (dbname = 'latest-db.sql') ->
-		exportPath = @root.getSubdirectory('db')
-		exportPath.create().then (created) =>
-			dbpath = exportPath.getPath() + '/' + dbname
-			@wp.db.export dbpath, (err,data) =>
-				if err
-					@emitter.emit 'error', err
-				else
-					@emitter.emit 'export', data
-
-	import: (dbname = 'latest-db.sql') ->
-		today = new Date
-		timestamp = "backup-#{today.getFullYear()}-#{(today.getMonth()+1)}-#{today.getDate()}-#{today.getHours()}-#{today.getMinutes()}-#{today.getSeconds()}.sql"
-		@export(timestamp)
-		importPath = @root.getSubdirectory('db').getFile(dbname)
-		importPath.exists().then (exists) =>
-			if exists
-				dbpath = importPath.getPath()
-				@wp.db.import dbpath, (err,data) =>
+				dbname = @namespace
+				dbuser = atom.config.get('wordpress-suite.wpcli.dbuser')
+				dbpass = atom.config.get('wordpress-suite.wpcli.dbpass')
+				dbhost = atom.config.get('wordpress-suite.wpcli.dbhost')
+				@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
 					if err
-						@emitter.emit 'error', err
+						@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
+						@check_core()
 					else
-						@emitter.emit 'import', data
+						@emitter.emit 'notification', [ 'WP-CLI: Config Created!', 'success' ]
+						@wp.db.create (err,message) =>
+							if err
+								@emitter.emit 'message', [ 'WP-CLI: Error Creating Database', 'error', err ]
+								@check_core()
+							else
+								@emitter.emit 'notification', [ 'WP-CLI: Database Created!', 'success' ]
+								url = atom.config.get('wordpress-suite.wpcli.url').replace('%%PROJECTNAME%%', @namespace)
+								title = @namespace
+								admin_user = atom.config.get('wordpress-suite.wpcli.admin_user')
+								admin_password = atom.config.get('wordpress-suite.wpcli.admin_password')
+								admin_email = atom.config.get('wordpress-suite.wpcli.admin_email')
+								@wp.core.install {url, title, admin_user, admin_password, admin_email}, (err,message) =>
+									if err
+										@emitter.emit 'message', [ 'WP-CLI: Error Installing Wordpress', 'error', err ]
+									else
+										@emitter.emit 'notification', [ 'WP-CLI: Wordpress Installed!', 'success' ]
+										@emitter.emit 'message', [ 'WP-CLI: Site Created!', 'success' ]
+									@check_core()
+
+
+	download_wordpress: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Wordpress Downloading', 'info' ]
+		@wp.core.download (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Download Error', 'error', err ]
 			else
-				@emitter.emit 'error', 'No Database Found'
+				@emitter.emit 'message', [ 'WP-CLI: Wordpress Downloaded!', 'success', message ]
+				@check_core()
+
+	create_config: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Creating Config', 'info' ]
+		dbname = @namespace
+		dbuser = atom.config.get('wordpress-suite.wpcli.dbuser')
+		dbpass = atom.config.get('wordpress-suite.wpcli.dbpass')
+		dbhost = atom.config.get('wordpress-suite.wpcli.dbhost')
+		@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Config Created!', 'success', message ]
+				@check_config()
+
+	create_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Creating Database', 'info' ]
+		@wp.db.create (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Creating Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Created!', 'success', message ]
+				@check_db()
+
+	install_wordpress: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Installing Wordpress', 'info' ]
+		url = atom.config.get('wordpress-suite.wpcli.url').replace('%%PROJECTNAME%%', @namespace)
+		title = @namespace
+		admin_user = atom.config.get('wordpress-suite.wpcli.admin_user')
+		admin_password = atom.config.get('wordpress-suite.wpcli.admin_password')
+		admin_email = atom.config.get('wordpress-suite.wpcli.admin_email')
+		@wp.core.install {url, title, admin_user, admin_password, admin_email}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Installing Wordpress', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Wordpress Installed!', 'success', message ]
+				@check_installed()
+
+	update_wordpress: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Updating Wordpress', 'info' ]
+		@wp.core.update (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Updating Wordpress', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Wordpress Updated!', 'success', message ]
+				@info?.version()
+				@status.update = null
+				@update_database()
+
+	update_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Updating Database', 'info' ]
+		@wp.core.update_db (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Updating Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Updated!', 'success', message ]
+
+	export_database: (dbname, callback) ->
+		if not dbname?
+			dbname = atom.config.get('wordpress-suite.wpcli.dbname')
+		dbpath = "#{@sitePath}/#{dbname}"
+		@emitter.emit 'notification', [ 'WP-CLI: Exporting Database', 'info' ]
+		@wp.db.export dbpath, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Exporting Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Exported!', 'success', message ]
+				# callback?
+
+	import_database: (dbname) ->
+		if not dbname?
+			dbname = atom.config.get('wordpress-suite.wpcli.dbname')
+		dbpath = "#{@sitePath}/#{dbname}"
+		@export_database 'backup.sql', () =>
+			@emitter.emit 'notification', [ 'WP-CLI: Importing Database', 'info' ]
+			@wp.db.import dbpath, (err,message) =>
+				if err
+					@emitter.emit 'message', [ 'WP-CLI: Error Importing Database', 'error', err ]
+				else
+					@emitter.emit 'message', [ 'WP-CLI: Database Imported!', 'success', message ]
+
+	optimize_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Optimizing Database', 'info' ]
+		@wp.db.optimize (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Optimizing Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Optimized!', 'success', message ]
+
+	repair_database: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Repair Database', 'info' ]
+		@wp.db.repair (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Repair Database', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Database Repaired!', 'success', message ]
+
+	clear_everything: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Everything', 'info' ]
+		@wp.rewrite.structure '/%postname%/', (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
+			else
+				@emitter.emit 'notification', [ 'WP-CLI: Permalinks Reset!', 'success' ]
+				@wp.rewrite.flush (err,message) =>
+					if err
+						@emitter.emit 'message', [ 'WP-CLI: Error Clearing Rewrite Rules', 'error', err ]
+					else
+						@emitter.emit 'notification', [ 'WP-CLI: Rewrite Rules Cleared!', 'success' ]
+						@wp.cache.flush (err,message) =>
+							if err
+								@emitter.emit 'message', [ 'WP-CLI: Error Clearing Cache', 'error', err ]
+							else
+								@emitter.emit 'notification', [ 'WP-CLI: Cache Cleared!', 'success' ]
+								@wp.transient.delete {all: true}, (err,message) =>
+									if err
+										@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
+									else
+										@emitter.emit 'notification', [ 'WP-CLI: Transients Cleared!', 'success' ]
+
+	reset_permalinks: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Resetting Permalinks', 'info' ]
+		@wp.rewrite.structure '/%postname%/', (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Resetting Permalinks', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Permalinks Reset!', 'success', message ]
+
+	clear_rewrite_rules: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Rewrite Rules', 'info' ]
+		@wp.rewrite.flush (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Rewrite Rules', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Rewrite Rules Cleared!', 'success', message ]
+
+	clear_cache: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Cache', 'info' ]
+		@wp.cache.flush (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Cache', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Cache Cleared!', 'success', message ]
+
+	clear_transients: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Clearing Transients', 'info' ]
+		@wp.transient.delete {all: true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Clearing Transients', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Transients Cleared!', 'success', message ]
+
+	verify_checksums: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Verifying Checksums', 'info' ]
+		@wp.core.verify_checksums (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Verifying Checksums', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Checksums Verified!', 'success', message ]
+
+	regenerate_thumbnails: ->
+		@emitter.emit 'notification', [ 'WP-CLI: Regenerating Thumbnails', 'info' ]
+		@wp.media.regenerate {yes: true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Regenerating Thumbnails', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Thumbnails Regenerated!', 'success', message ]
+
+	import_media: (mediaPath) ->
+		@emitter.emit 'notification', [ 'WP-CLI: Importing Media', 'info' ]
+		@wp.media.import mediaPath, (err,message) =>
+			if err
+				@emitter.emit 'message', [ 'WP-CLI: Error Importing Media', 'error', err ]
+			else
+				@emitter.emit 'message', [ 'WP-CLI: Media Imported!', 'success', message ]
+
+	onNotification: (callback) ->
+		@emitter.on('notification', callback)
+
+	onMessage: (callback) ->
+		@emitter.on('message', callback)
 
 	dispose: ->
-		@emitter?.emit 'dispose'
-		@emitter?.dispose()
+		@log "Disposed", 6
+
 		@subscriptions?.dispose()
 
-	onDidInitialize: (callback) ->
-		@emitter.on('main', callback)
-
-	onDidDiscover: (callback) ->
-		@emitter.on('discover', callback)
-
-	onDidUpdate: (callback) ->
-		@emitter.on('update', callback)
-
-	onDidDispose: (callback) ->
-		@emitter.on('dispose', callback)
-
-	onDidName: (callback) ->
-		@emitter.on('name', callback)
-
-	onDidURL: (callback) ->
-		@emitter.on('url', callback)
-
-	onDidPlugin: (callback) ->
-		@emitter.on('plugin', callback)
-
-	onDidWarning: (callback) ->
-		@emitter.on('warning', callback)
-
-	onDidError: (callback) ->
-		@emitter.on('error', callback)
-
-	onDidExport: (callback) ->
-		@emitter.on('export', callback)
-
-	onDidImport: (callback) ->
-		@emitter.on('import', callback)
+		if atom.inDevMode()
+			@logger = -> ->
+			@log = ->
+			@sitePath = null
+			@wp = null
+			@emitter = null
+			@subscriptions = null
+			@plugins = null
+			@themes = null
+			@info = null
+			@status = {
+				yml: null
+				exists: null
+				initialized: null
+				core: null
+				config: null
+				database: null
+				installed: null
+				update: null
+			}
