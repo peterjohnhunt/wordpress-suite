@@ -7,6 +7,8 @@ config = require './config'
 module.exports =
 
 	config: config
+	log: ->
+	logger: -> ->
 
 	activate: ->
 		activate = =>
