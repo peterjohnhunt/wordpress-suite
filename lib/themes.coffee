@@ -3,8 +3,9 @@
 module.exports = class Themes
 
 	constructor: (wp,logger,namespace) ->
+		@namespace = namespace
 		@logger = logger
-		@log    = @logger "site.#{namespace}.wpcli.themes"
+		@log    = @logger "site.#{@namespace}.wpcli.themes"
 		@wp     = wp
 
 		@directory = null
@@ -30,24 +31,29 @@ module.exports = class Themes
 	setup: ->
 		@wp.theme.list (err,themes) =>
 			if not err
+				if themes.filter((p) -> return p.update is 'available').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:theme:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.themes.update_all()
+					@menu.push({ label: 'Update All', command: "wordpress-suite:site:theme:update-all:#{@namespace}" })
+					@menu.push({ type:'separator' })
 				for theme in themes
 					@subscriptions.add atom.commands.add ".project-root",
-						"wordpress-suite:site:theme:add-folder:#{theme.name}": (event) =>
+						"wordpress-suite:site:theme:add-folder:#{@namespace}:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							atom.project.addPath(@directory.getSubdirectory(name).getPath())
-						"wordpress-suite:site:theme:activate:#{theme.name}": (event) =>
+						"wordpress-suite:site:theme:activate:#{@namespace}:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.activate(name)
-						"wordpress-suite:site:theme:update:#{theme.name}": (event) =>
+						"wordpress-suite:site:theme:update:#{@namespace}:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.update(name)
-						"wordpress-suite:site:theme:delete:#{theme.name}": (event) =>
+						"wordpress-suite:site:theme:delete:#{@namespace}:#{theme.name}": (event) =>
 							name = event.type.split(':').pop()
 							site = atom.wordpressSuite.getSelectedSite().wpcli.themes.delete(name)
 
 					submenu = []
 
-					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:theme:add-folder:#{theme.name}", shouldDisplay: ->
+					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:theme:add-folder:#{@namespace}:#{theme.name}", shouldDisplay: ->
 						name = @command.split(':').pop()
 						site = atom.wordpressSuite.getSelectedSite()
 						theme = site.wpcli.themes.directory.getSubdirectory(name)
@@ -55,11 +61,11 @@ module.exports = class Themes
 					})
 
 					if theme.status is 'inactive'
-						submenu.push({ label: 'Activate', command: "wordpress-suite:site:theme:activate:#{theme.name}" })
-						submenu.push({ label: 'Delete', command: "wordpress-suite:site:theme:delete:#{theme.name}" })
+						submenu.push({ label: 'Activate', command: "wordpress-suite:site:theme:activate:#{@namespace}:#{theme.name}" })
+						submenu.push({ label: 'Delete', command: "wordpress-suite:site:theme:delete:#{@namespace}:#{theme.name}" })
 
 					if theme.update is 'available'
-						submenu.push({ label: 'Update', command: "wordpress-suite:site:theme:update:#{theme.name}" })
+						submenu.push({ label: 'Update', command: "wordpress-suite:site:theme:update:#{@namespace}:#{theme.name}" })
 
 					submenu.push({ type: 'separator' })
 					submenu.push({ label: "Version: #{theme.version}", enabled: false })
@@ -88,7 +94,17 @@ module.exports = class Themes
 			if err
 				@emitter.emit 'message', [ "Error Updating #{name}", 'error', err ]
 			else
-				@emitter.emit 'message', [ "#{name} Updated", 'success', message ]
+				@emitter.emit 'message', [ "#{name} Updated", 'success', "Theme '#{name}' updated.\nSuccess: Updated 1 of 1 themes." ]
+				@refresh()
+
+	update_all: ->
+		@emitter.emit 'notification', [ "Updating All Themes", 'info' ]
+		@wp.theme.update {all:true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Updating All Themes", 'error', err ]
+			else
+				names = themes.map((t) => return t.name)
+				@emitter.emit 'message', [ "All Themes Updated", 'success', "Themes '#{names.join(', ')}' updated.\nSuccess: Updated #{names.length} of #{names.length} themes." ]
 				@refresh()
 
 	delete: (name) ->

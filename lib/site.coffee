@@ -183,6 +183,8 @@ module.exports = class Site
 	dispose: ->
 		@log "Removed | #{@name}", 6
 
+		@notifications?.clear()
+
 		@subscriptions?.dispose()
 
 		if atom.inDevMode()

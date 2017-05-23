@@ -3,8 +3,9 @@
 module.exports = class Plugins
 
 	constructor: (wp,logger,namespace) ->
+		@namespace = namespace
 		@logger = logger
-		@log    = @logger "site.#{namespace}.wpcli.plugins"
+		@log    = @logger "site.#{@namespace}.wpcli.plugins"
 		@wp     = wp
 
 		@directory = null
@@ -30,27 +31,32 @@ module.exports = class Plugins
 	setup: ->
 		@wp.plugin.list (err,plugins) =>
 			if not err
+				if plugins.filter((p) -> return p.update is 'available').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:plugin:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.plugins.update_all()
+					@menu.push({ label: 'Update All', command: "wordpress-suite:site:plugin:update-all:#{@namespace}" })
+					@menu.push({ type:'separator' })
 				for plugin in plugins
 					@subscriptions.add atom.commands.add ".project-root",
-						"wordpress-suite:site:plugin:add-folder:#{plugin.name}": (event) =>
+						"wordpress-suite:site:plugin:add-folder:#{@namespace}:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
 							atom.project.addPath(@directory.getSubdirectory(name).getPath())
-						"wordpress-suite:site:plugin:activate:#{plugin.name}": (event) =>
+						"wordpress-suite:site:plugin:activate:#{@namespace}:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.activate(name)
-						"wordpress-suite:site:plugin:deactivate:#{plugin.name}": (event) =>
+							atom.wordpressSuite.getSelectedSite().wpcli.plugins.activate(name)
+						"wordpress-suite:site:plugin:deactivate:#{@namespace}:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.deactivate(name)
-						"wordpress-suite:site:plugin:update:#{plugin.name}": (event) =>
+							atom.wordpressSuite.getSelectedSite().wpcli.plugins.deactivate(name)
+						"wordpress-suite:site:plugin:update:#{@namespace}:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.update(name)
-						"wordpress-suite:site:plugin:delete:#{plugin.name}": (event) =>
+							atom.wordpressSuite.getSelectedSite().wpcli.plugins.update(name)
+						"wordpress-suite:site:plugin:delete:#{@namespace}:#{plugin.name}": (event) =>
 							name = event.type.split(':').pop()
-							site = atom.wordpressSuite.getSelectedSite().wpcli.plugins.delete(name)
+							atom.wordpressSuite.getSelectedSite().wpcli.plugins.delete(name)
 
 					submenu = []
 
-					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:plugin:add-folder:#{plugin.name}", shouldDisplay: ->
+					submenu.push({ label: 'Add Folder', command: "wordpress-suite:site:plugin:add-folder:#{@namespace}:#{plugin.name}", shouldDisplay: ->
 						name = @command.split(':').pop()
 						site = atom.wordpressSuite.getSelectedSite()
 						plugin = site.wpcli.plugins.directory.getSubdirectory(name)
@@ -58,15 +64,15 @@ module.exports = class Plugins
 					})
 
 					if plugin.status is 'inactive'
-						submenu.push({ label: 'Activate', command: "wordpress-suite:site:plugin:activate:#{plugin.name}" })
+						submenu.push({ label: 'Activate', command: "wordpress-suite:site:plugin:activate:#{@namespace}:#{plugin.name}" })
 
 					if plugin.status is 'active'
-						submenu.push({ label: 'Deactivate', command: "wordpress-suite:site:plugin:deactivate:#{plugin.name}" })
+						submenu.push({ label: 'Deactivate', command: "wordpress-suite:site:plugin:deactivate:#{@namespace}:#{plugin.name}" })
 
 					if plugin.update is 'available'
-						submenu.push({ label: 'Update', command: "wordpress-suite:site:plugin:update:#{plugin.name}" })
+						submenu.push({ label: 'Update', command: "wordpress-suite:site:plugin:update:#{@namespace}:#{plugin.name}" })
 
-					submenu.push({ label: 'Delete', command: "wordpress-suite:site:plugin:delete:#{plugin.name}" })
+					submenu.push({ label: 'Delete', command: "wordpress-suite:site:plugin:delete:#{@namespace}:#{plugin.name}" })
 					submenu.push({ type: 'separator' })
 					submenu.push({ label: "Version: #{plugin.version}", enabled: false })
 					submenu.push({ label: "Status: #{plugin.status}", enabled: false })
@@ -99,11 +105,21 @@ module.exports = class Plugins
 
 	update: (name) ->
 		@emitter.emit 'notification', [ "Updating #{name}", 'info' ]
-		@wp.plugin.update name, (err,message) =>
+		@wp.plugin.update name, (err,plugin) =>
 			if err
 				@emitter.emit 'message', [ "Error Updating #{name}", 'error', err ]
 			else
-				@emitter.emit 'message', [ "#{name} Updated", 'success', message ]
+				@emitter.emit 'message', [ "#{name} Updated", 'success', "Plugin '#{name}' updated.\nSuccess: Updated 1 of 1 plugins." ]
+				@refresh()
+
+	update_all: ->
+		@emitter.emit 'notification', [ "Updating All Plugins", 'info' ]
+		@wp.plugin.update {all:true}, (err,plugins) =>
+			if err
+				@emitter.emit 'message', [ "Error Updating All Plugins", 'error', err ]
+			else
+				names = plugins.map((p) => return p.name)
+				@emitter.emit 'message', [ "All Plugins Updated", 'success', "Plugins '#{names.join(', ')}' updated.\nSuccess: Updated #{names.length} of #{names.length} plugins." ]
 				@refresh()
 
 	delete: (name) ->
