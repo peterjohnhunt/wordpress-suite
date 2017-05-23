@@ -1,5 +1,6 @@
 {CompositeDisposable, Disposable, Directory} = require 'atom'
 path = require 'path'
+{requirePackages} = require 'atom-utils'
 
 WPCLI = require './wpcli'
 LogFile = require './log-file'
@@ -15,9 +16,10 @@ module.exports = class Site
 		@log           = @logger "site.#{@name}"
 		@paths         = [sitePath]
 		@subscriptions = new CompositeDisposable
-		@treeView      = atom.workspace.getLeftDock().getActivePaneItem()
 
 		@setup()
+
+		new Disposable()
 
 	refresh: ->
 		@notifications.add("#{@name.toUpperCase()} | Refreshing", 'info')
@@ -30,91 +32,91 @@ module.exports = class Site
 		@setup()
 
 	setup: ->
-		@subscriptions.add @logFile       = new LogFile(@root,@logger,@name)
-		@subscriptions.add @wpcli         = new WPCLI(@root,@logger,@name)
-		@subscriptions.add @notifications = new Notifications(@logger,@name)
+		requirePackages('tree-view').then ([treeViewPackage]) =>
+			@treeView = treeViewPackage.treeView
+			@subscriptions.add @logFile       = new LogFile(@root,@logger,@name)
+			@subscriptions.add @wpcli         = new WPCLI(@root,@logger,@name)
+			@subscriptions.add @notifications = new Notifications(@logger,@name)
 
-		@subscriptions.add @logFile.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
-		@subscriptions.add @logFile.onMessage ([title,type,detail]) =>
-			options = {
-				sitePath: @root,
-				dismissable:true,
-				detail: detail,
-				buttons: [
-					{ text: 'Clear', className: 'btn-clear', onDidClick: =>
-						@logFile.clear()
-						@notifications.clear()
-					},
-					{ text: 'Open', className: 'btn-open', onDidClick: =>
-						@logFile.open()
-						@notifications.clear()
-					},
-					{ className: 'btn-mute btn-right', onDidClick: ->
-						sitePath = @model.options.sitePath
-						message = @model.options.detail
-						atom.wordpressSuite.muteNotification(message, sitePath)
-						@removeNotification()
-					}
-				]
-			}
-			@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
+			@subscriptions.add @logFile.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
+			@subscriptions.add @logFile.onMessage ([title,type,detail]) =>
+				options = {
+					sitePath: @root,
+					dismissable:true,
+					detail: detail,
+					buttons: [
+						{ text: 'Clear', className: 'btn-clear', onDidClick: =>
+							@logFile.clear()
+							@notifications.clear()
+						},
+						{ text: 'Open', className: 'btn-open', onDidClick: =>
+							@logFile.open()
+							@notifications.clear()
+						},
+						{ className: 'btn-mute btn-right', onDidClick: ->
+							sitePath = @model.options.sitePath
+							message = @model.options.detail
+							atom.wordpressSuite.muteNotification(message, sitePath)
+							@removeNotification()
+						}
+					]
+				}
+				@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
 
-		@subscriptions.add @wpcli.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
-		@subscriptions.add @wpcli.onMessage ([title,type,detail]) =>
-			options = {
-				sitePath: @root,
-				dismissable:true,
-				detail: detail,
-				buttons: [
-					{ text: 'Clear', className: 'btn-clear', onDidClick: =>
-						@notifications.clear()
-					}
-				]
-			}
-			@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
+			@subscriptions.add @wpcli.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
+			@subscriptions.add @wpcli.onMessage ([title,type,detail]) =>
+				options = {
+					sitePath: @root,
+					dismissable:true,
+					detail: detail,
+					buttons: [
+						{ text: 'Clear', className: 'btn-clear', onDidClick: =>
+							@notifications.clear()
+						}
+					]
+				}
+				@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
 
-		@subscriptions.add @notifications.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type, {dismissable:false}, true)
-		@subscriptions.add @notifications.onMute ([title,type,detail]) =>
-			options = {
-				sitePath: @root,
-				dismissable:true,
-				detail: detail,
-				buttons: [
-					{ text: 'Clear', className: 'btn-clear', onDidClick: =>
-						@notifications.clear()
-					},
-					{ className: 'btn-unmute btn-right', onDidClick: ->
-						sitePath = @model.options.sitePath
-						message = @model.options.detail
-						atom.wordpressSuite.unmuteNotification(message, sitePath)
-						@removeNotification()
-					}
-				]
-			}
-			@notifications.add("#{@name.toUpperCase()} | #{title}", type, options, true)
+			@subscriptions.add @notifications.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type, {dismissable:false}, true)
+			@subscriptions.add @notifications.onMute ([title,type,detail]) =>
+				options = {
+					sitePath: @root,
+					dismissable:true,
+					detail: detail,
+					buttons: [
+						{ text: 'Clear', className: 'btn-clear', onDidClick: =>
+							@notifications.clear()
+						},
+						{ className: 'btn-unmute btn-right', onDidClick: ->
+							sitePath = @model.options.sitePath
+							message = @model.options.detail
+							atom.wordpressSuite.unmuteNotification(message, sitePath)
+							@removeNotification()
+						}
+					]
+				}
+				@notifications.add("#{@name.toUpperCase()} | #{title}", type, options, true)
 
-		@subscriptions.add @notifications.onUnmute ([title,type,detail]) =>
-			options = {
-				sitePath: @root,
-				dismissable:true,
-				detail: detail,
-				buttons: [
-					{ text: 'Clear', className: 'btn-clear', onDidClick: =>
-						@notifications.clear()
-					},
-					{ className: 'btn-mute btn-right', onDidClick: ->
-						sitePath = @model.options.sitePath
-						message = @model.options.detail
-						atom.wordpressSuite.muteNotification(message, sitePath)
-						@removeNotification()
-					}
-				]
-			}
-			@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
+			@subscriptions.add @notifications.onUnmute ([title,type,detail]) =>
+				options = {
+					sitePath: @root,
+					dismissable:true,
+					detail: detail,
+					buttons: [
+						{ text: 'Clear', className: 'btn-clear', onDidClick: =>
+							@notifications.clear()
+						},
+						{ className: 'btn-mute btn-right', onDidClick: ->
+							sitePath = @model.options.sitePath
+							message = @model.options.detail
+							atom.wordpressSuite.muteNotification(message, sitePath)
+							@removeNotification()
+						}
+					]
+				}
+				@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
 
-		@log "Created | #{@name}", 6
-
-		new Disposable()
+			@log "Created | #{@name}", 6
 
 	addPath: (sitePath) ->
 		index = @paths.indexOf(sitePath)

@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.2](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.1...v1.0.2) | 2017-05-23
+### Fixed
+ - treeview wait for initialized entryForPath not found error
+
 ## [v1.0.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.0...v1.0.1) | 2017-05-21
 ### Fixed
  - this.log error ([Bug #4](https://github.com/peterjohnhunt/wordpress-suite/issues/10))

@@ -159,4 +159,8 @@ For release notes and version history, view the [change log](https://github.com/
 ## Issues / Additions
 For any issues, additions or bugs, feel free to [open an issue](https://github.com/peterjohnhunt/wordpress-suite/issues/new) and include stack trace if applicable!
 
+## TODO
+* View Site (Open Link)
+* Delete Media File on Import
+* Add Dialogs and Add Plugin / Add Theme Features
 ---
