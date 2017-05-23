@@ -56,11 +56,11 @@ module.exports = class Themes
 
 					if theme.status is 'inactive'
 						submenu.push({ label: 'Activate', command: "wordpress-suite:site:theme:activate:#{theme.name}" })
+						submenu.push({ label: 'Delete', command: "wordpress-suite:site:theme:delete:#{theme.name}" })
 
 					if theme.update is 'available'
 						submenu.push({ label: 'Update', command: "wordpress-suite:site:theme:update:#{theme.name}" })
 
-					submenu.push({ label: 'Delete', command: "wordpress-suite:site:theme:delete:#{theme.name}" })
 					submenu.push({ type: 'separator' })
 					submenu.push({ label: "Version: #{theme.version}", enabled: false })
 					submenu.push({ label: "Status: #{theme.status}", enabled: false })

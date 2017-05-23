@@ -1,6 +1,11 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.3](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.2...v1.0.3) | 2017-05-23
+### Fixed
+ - WP-CLI: Update CLI pass in yes parameter so user isn't prompted
+ - WP-CLI: Themes hide delete for active theme
+
 ## [v1.0.2](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.1...v1.0.2) | 2017-05-23
 ### Fixed
  - treeview wait for initialized entryForPath not found error

@@ -38,7 +38,7 @@ module.exports = class WordpressSuite
 									{ text: 'Update', className: 'btn-update', onDidClick: ->
 										@removeNotification()
 										atom.notifications.add('info', 'Updating WP-CLI')
-										atom.wordpressSuite.wp.cli.update (err,message) =>
+										atom.wordpressSuite.wp.cli.update {yes:true}, (err,message) =>
 											if err
 												atom.notifications.add('error', 'Error Updating WP-CLI', {dismissable: true, detail: err})
 											else
