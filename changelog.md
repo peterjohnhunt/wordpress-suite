@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.6](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.5...v1.0.6) | 2017-07-10
+### Updated
+ - WP-CLI: core.config command deprecation updated to config.create
+
 ## [v1.0.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.4...v1.0.5) | 2017-07-10
 ### Fixed
  - getSelectedSite() returning undefined error ([Bug #12](https://github.com/peterjohnhunt/wordpress-suite/issues/12))

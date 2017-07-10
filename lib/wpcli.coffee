@@ -167,7 +167,7 @@ module.exports = class WPCLI
 				dbuser = atom.config.get('wordpress-suite.wpcli.dbuser')
 				dbpass = atom.config.get('wordpress-suite.wpcli.dbpass')
 				dbhost = atom.config.get('wordpress-suite.wpcli.dbhost')
-				@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
+				@wp.config.create {dbname, dbuser, dbpass, dbhost}, (err,message) =>
 					if err
 						@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
 						@check_core()
@@ -208,7 +208,7 @@ module.exports = class WPCLI
 		dbuser = atom.config.get('wordpress-suite.wpcli.dbuser')
 		dbpass = atom.config.get('wordpress-suite.wpcli.dbpass')
 		dbhost = atom.config.get('wordpress-suite.wpcli.dbhost')
-		@wp.core.config {dbname, dbuser, dbpass, dbhost}, (err,message) =>
+		@wp.config.create {dbname, dbuser, dbpass, dbhost}, (err,message) =>
 			if err
 				@emitter.emit 'message', [ 'WP-CLI: Error Creating Config', 'error', err ]
 			else
