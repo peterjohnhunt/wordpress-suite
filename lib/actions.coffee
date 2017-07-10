@@ -45,74 +45,74 @@ module.exports = class Actions
 
 		@subscriptions.add atom.contextMenu.add {
 			".project-root": [{ label: 'Wordpress Suite', submenu: [
-				{ label: 'Add Root', command: "wordpress-suite:site:addRoot", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasRoot() isnt true }
-				{ label: 'Open Log', command: "wordpress-suite:site:log-file:open", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasLogFile() }
-				{ label: 'Clear Log', command: "wordpress-suite:site:log-file:clear", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().logFileHasMessages() }
+				{ label: 'Add Root', command: "wordpress-suite:site:addRoot", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasRoot() isnt true }
+				{ label: 'Open Log', command: "wordpress-suite:site:log-file:open", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasLogFile() }
+				{ label: 'Clear Log', command: "wordpress-suite:site:log-file:clear", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.logFileHasMessages() }
 				{ type: 'separator' }
-				{ label: 'Update Wordpress', command: "wordpress-suite:site:wp-cli:update-wordpress", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('update') }
+				{ label: 'Update Wordpress', command: "wordpress-suite:site:wp-cli:update-wordpress", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('update') }
 				{ type: 'separator' }
-				{ label: 'Export Database', command: "wordpress-suite:site:wp-cli:export-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
-				{ label: 'Import Database', command: "wordpress-suite:site:wp-cli:import-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+				{ label: 'Export Database', command: "wordpress-suite:site:wp-cli:export-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('database') }
+				{ label: 'Import Database', command: "wordpress-suite:site:wp-cli:import-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('database') }
 				{ type: 'separator' }
-				{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+				{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 				{ type: 'separator' }
 				{ label: 'Refresh', command: "wordpress-suite:site:refresh" }
 				{ type: 'separator' }
 				{ label: 'Setup', submenu: [
 					{ label: 'Full Setup', command: "wordpress-suite:site:wp-cli:full-setup", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('initialized') and not site.hasWPCLI('core') and not site.hasWPCLI('installed')
+						return site?.hasWPCLI('initialized') and not site?.hasWPCLI('core') and not site?.hasWPCLI('installed')
 					}
 					{ type: 'separator' }
 					{ label: 'Download Wordpress', command: "wordpress-suite:site:wp-cli:download-wordpress", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('initialized') and not site.hasWPCLI('core')
+						return site?.hasWPCLI('initialized') and not site?.hasWPCLI('core')
 					}
 					{ label: 'Create Config', command: "wordpress-suite:site:wp-cli:create-config", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('core') and not site.hasWPCLI('config')
+						return site?.hasWPCLI('core') and not site?.hasWPCLI('config')
 					}
 					{ label: 'Create Database', command: "wordpress-suite:site:wp-cli:create-database", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('config') and not site.hasWPCLI('database')
+						return site?.hasWPCLI('config') and not site?.hasWPCLI('database')
 					}
 					{ label: 'Install Wordpress', command: "wordpress-suite:site:wp-cli:install-wordpress", shouldDisplay: ->
 						site = atom.wordpressSuite.getSelectedSite()
-						return site.hasWPCLI('database') and not site.hasWPCLI('installed')
+						return site?.hasWPCLI('database') and not site?.hasWPCLI('installed')
 					}
 				], shouldDisplay: ->
 					site = atom.wordpressSuite.getSelectedSite()
-					return site.hasWPCLI('ready') and not site.hasWPCLI('installed')
+					return site?.hasWPCLI('ready') and not site?.hasWPCLI('installed')
 				}
 				{ label: 'Notifications', submenu: [
-					{ label: 'Show Recent', command: "wordpress-suite:site:notifications:show-recent", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasNotifications() }
-					{ label: 'Clear Recent', command: "wordpress-suite:site:notifications:clear-recent", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasNotifications() }
+					{ label: 'Show Recent', command: "wordpress-suite:site:notifications:show-recent", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasNotifications() }
+					{ label: 'Clear Recent', command: "wordpress-suite:site:notifications:clear-recent", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasNotifications() }
 					{ type: 'separator' }
-					{ label: 'Show Muted', command: "wordpress-suite:site:notifications:show-muted", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasMutedNotifications() }
-					{ label: 'Clear Muted', command: "wordpress-suite:site:notifications:clear-muted", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasMutedNotifications() }
+					{ label: 'Show Muted', command: "wordpress-suite:site:notifications:show-muted", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasMutedNotifications() }
+					{ label: 'Clear Muted', command: "wordpress-suite:site:notifications:clear-muted", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasMutedNotifications() }
 					{ type: 'separator' }
-					{ label: 'Disable', command: "wordpress-suite:site:notifications:disable", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().notificationsIsEnabled() }
-					{ label: 'Enable', command: "wordpress-suite:site:notifications:enable", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite().notificationsIsEnabled() }
+					{ label: 'Disable', command: "wordpress-suite:site:notifications:disable", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.notificationsIsEnabled() }
+					{ label: 'Enable', command: "wordpress-suite:site:notifications:enable", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite()?.notificationsIsEnabled() }
 				]}
 				{ label: 'Debug Log', submenu: [
-					{ label: 'Pause Watching', command: "wordpress-suite:site:log-file:pause-watching", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().isWatchingLogFile() }
-					{ label: 'Resume Watching', command: "wordpress-suite:site:log-file:resume-watching", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite().isWatchingLogFile() }
-				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasLogFile() }
+					{ label: 'Pause Watching', command: "wordpress-suite:site:log-file:pause-watching", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.isWatchingLogFile() }
+					{ label: 'Resume Watching', command: "wordpress-suite:site:log-file:resume-watching", shouldDisplay: -> return not atom.wordpressSuite.getSelectedSite()?.isWatchingLogFile() }
+				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasLogFile() }
 				{ label: 'Utilities', submenu: [
-					{ label: 'Clear Everything', command: "wordpress-suite:site:wp-cli:clear-everything", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+					{ label: 'Clear Everything', command: "wordpress-suite:site:wp-cli:clear-everything", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 					{ type: 'separator' }
-					{ label: 'Reset Permalinks', command: "wordpress-suite:site:wp-cli:reset-permalinks", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-					{ label: 'Clear Rewrite Rules', command: "wordpress-suite:site:wp-cli:clear-rewrite-rules", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-					{ label: 'Clear Cache', command: "wordpress-suite:site:wp-cli:clear-cache", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-					{ label: 'Clear Transients', command: "wordpress-suite:site:wp-cli:clear-transients", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+					{ label: 'Reset Permalinks', command: "wordpress-suite:site:wp-cli:reset-permalinks", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
+					{ label: 'Clear Rewrite Rules', command: "wordpress-suite:site:wp-cli:clear-rewrite-rules", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
+					{ label: 'Clear Cache', command: "wordpress-suite:site:wp-cli:clear-cache", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
+					{ label: 'Clear Transients', command: "wordpress-suite:site:wp-cli:clear-transients", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 					{ type: 'separator' }
-					{ label: 'Verify Checksums', command: "wordpress-suite:site:wp-cli:verify-checksums", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+					{ label: 'Verify Checksums', command: "wordpress-suite:site:wp-cli:verify-checksums", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 					{ type: 'separator' }
-					{ label: 'Optimize Database', command: "wordpress-suite:site:wp-cli:optimize-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
-					{ label: 'Repair Database', command: "wordpress-suite:site:wp-cli:repair-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('database') }
+					{ label: 'Optimize Database', command: "wordpress-suite:site:wp-cli:optimize-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('database') }
+					{ label: 'Repair Database', command: "wordpress-suite:site:wp-cli:repair-database", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('database') }
 					{ type: 'separator' }
-					{ label: 'Regenerate Thumbnails', command: "wordpress-suite:site:wp-cli:regenerate-thumbnails", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
-				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite().hasWPCLI('installed') }
+					{ label: 'Regenerate Thumbnails', command: "wordpress-suite:site:wp-cli:regenerate-thumbnails", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
+				], shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 			]}]
 		}
 

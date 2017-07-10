@@ -31,6 +31,7 @@ module.exports = class WordpressSuite
 					@wp = wp
 					wp.cli.check_update (err, update) =>
 						if update
+							console.log update
 							atom.notifications.add('info', 'WP-CLI Update Available:', {
 								dismissable: true,
 								detail: update,

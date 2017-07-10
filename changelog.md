@@ -1,6 +1,11 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.0.5](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.4...v1.0.5) | 2017-07-10
+### Fixed
+ - getSelectedSite() returning undefined error ([Bug #12](https://github.com/peterjohnhunt/wordpress-suite/issues/12))
+ - Fixed readme bug number discrepancy
+
 ## [v1.0.4](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.3...v1.0.4) | 2017-05-23
 ### Fixed
  - WP-CLI: Commands not unique enough
@@ -20,7 +25,7 @@ All notable changes or release notes for this project will be documented in this
 
 ## [v1.0.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.0...v1.0.1) | 2017-05-21
 ### Fixed
- - this.log error ([Bug #4](https://github.com/peterjohnhunt/wordpress-suite/issues/10))
+ - this.log error ([Bug #10](https://github.com/peterjohnhunt/wordpress-suite/issues/10))
 
 ## [v1.0.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v0.4.5...v1.0.0) | 2017-05-21
 ### Added
