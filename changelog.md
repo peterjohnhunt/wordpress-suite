@@ -1,6 +1,11 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.1.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.1.0...v1.1.1) | 2017-07-11
+### Fixed
+ - WordPress capitalization
+ - WP-CLI: Menu capitalization
+
 ## [v1.1.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.6...v1.1.0) | 2017-07-11
 ### Added
  - WP-CLI: Users menu list
@@ -44,7 +49,7 @@ All notable changes or release notes for this project will be documented in this
 ### Added
  - Completely Refactored and Upgraded to complete a v1.0.0
  - Full WP-CLI Integration Including:
-	 - Wordpress Setup (Database / Config / Install / Update)
+	 - WordPress Setup (Database / Config / Install / Update)
 	 - Site Info (Post Types / Taxonomies / User Roles)
 	 - Clear Caches (Object / Permalinks / Transients)
 	 - Optimizations (Regenerate Thumbnails / Database / Checksums / Repair Database)

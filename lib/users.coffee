@@ -41,7 +41,7 @@ module.exports = class Users
 					submenu.push({ label: "ID: #{user.ID}", enabled: false })
 					submenu.push({ label: "Email: #{user.user_email}", enabled: false })
 					submenu.push({ label: "Name: #{user.display_name}", enabled: false })
-					submenu.push({ label: "roles: #{user.roles}", enabled: false })
+					submenu.push({ label: "Roles: #{user.roles}", enabled: false })
 
 					@menu.push({ label: user.user_login, submenu: submenu })
 
