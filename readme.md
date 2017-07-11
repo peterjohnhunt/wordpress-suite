@@ -133,6 +133,9 @@ When right clicking a Wordpress project in the sidebar, you'll have a "Wordpress
 	* Update
 	* Delete
 	* Info
+* Users
+	* Delete
+	* Info
 
 ---
 

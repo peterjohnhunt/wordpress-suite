@@ -74,10 +74,12 @@ module.exports = class Themes
 
 					@menu.push({ label: theme.name, submenu: submenu })
 
-		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.themes.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.hasThemes())}] }] }
+		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.themes.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.themes)}] }] }
 
 	getMenu: ->
-		return @menu
+		if @menu.length > 0
+			return @menu
+		return [{ label: "Loading...", enabled: false }]
 
 	activate: (name) ->
 		@emitter.emit 'notification', [ "Activating #{name}", 'info' ]

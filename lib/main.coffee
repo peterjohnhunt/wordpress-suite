@@ -67,6 +67,7 @@ module.exports =
 				'lib/projects.coffee',
 				'lib/site.coffee',
 				'lib/themes.coffee',
+				'lib/users.coffee',
 				'lib/views.coffee',
 				'lib/wordpress-suite.coffee'
 				'lib/wpcli.coffee'

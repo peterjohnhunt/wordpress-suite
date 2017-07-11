@@ -1,6 +1,15 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.1.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.6...v1.1.0) | 2017-07-11
+### Added
+ - WP-CLI: Users menu list
+ - WP-CLI: User info
+ - WP-CLI: User delete menu item
+### Updated
+ - WP-CLI: Users / Plugins / Themes show loading in menu
+ - Readme
+
 ## [v1.0.6](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.0.5...v1.0.6) | 2017-07-10
 ### Updated
  - WP-CLI: core.config command deprecation updated to config.create

@@ -86,7 +86,7 @@ module.exports = class Info
 					submenu.push({label:role.name,enabled:false})
 				@menu.roles = { label: 'Roles', enabled: false, submenu:submenu }
 
-		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Site', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.info.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.hasInfo())}] }] }
+		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Site', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.info.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.info)}] }] }
 
 	getMenu: ->
 		return Object.keys(@menu).map((key) => return @menu[key]).filter((n) => n)

@@ -6,6 +6,7 @@ command = require 'command-exists'
 Plugins = require './plugins'
 Themes = require './themes'
 Info = require './info'
+Users = require './users'
 
 module.exports = class WPCLI
 
@@ -19,6 +20,7 @@ module.exports = class WPCLI
 		@plugins = null
 		@themes = null
 		@info = null
+		@users = null
 
 		@status = {
 			yml: null
@@ -44,6 +46,7 @@ module.exports = class WPCLI
 		@plugins = null
 		@themes = null
 		@info = null
+		@users = null
 		@status = {
 			yml: null
 			exists: null
@@ -142,17 +145,11 @@ module.exports = class WPCLI
 					@subscriptions.add @info = new Info(@wp, @logger, @namespace)
 					@subscriptions.add @info.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
 					@subscriptions.add @info.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@subscriptions.add @users = new Users(@wp, @logger, @namespace)
+					@subscriptions.add @users.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @users.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
 					@emitter.emit 'notification', [ 'WP-CLI: Initialized' ]
 				@status.ready = true
-
-	hasPlugins: ->
-		return @plugins?.getMenu().length > 0
-
-	hasThemes: ->
-		return @themes?.getMenu().length > 0
-
-	hasInfo: ->
-		return @info?.getMenu().length > 0
 
 	full_setup: ->
 		@emitter.emit 'notification', [ 'WP-CLI: Creating Site', 'info' ]
@@ -397,6 +394,7 @@ module.exports = class WPCLI
 			@plugins = null
 			@themes = null
 			@info = null
+			@users = null
 			@status = {
 				yml: null
 				exists: null
