@@ -1,7 +1,7 @@
 {
   "name": "wordpress-suite",
   "main": "./lib/main",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Debug Watcher, WP-CLI Commands, Quick Tools.",
   "keywords": [
     "wordpress",
