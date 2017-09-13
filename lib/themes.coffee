@@ -1,4 +1,5 @@
 {CompositeDisposable, Emitter, Disposable, Directory} = require 'atom'
+ThemesListView = require '../views/themes-list'
 
 module.exports = class Themes
 
@@ -31,11 +32,10 @@ module.exports = class Themes
 	setup: ->
 		@wp.theme.list (err,themes) =>
 			if not err
-				if themes.filter((p) -> return p.update is 'available').length > 0
-					@subscriptions.add atom.commands.add ".project-root",
-						"wordpress-suite:site:theme:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.themes.update_all()
-					@menu.push({ label: 'Update All', command: "wordpress-suite:site:theme:update-all:#{@namespace}" })
-					@menu.push({ type:'separator' })
+				@subscriptions.add atom.commands.add ".project-root", "wordpress-suite:site:theme:add:#{@namespace}": (event) => themesList = new ThemesListView
+				@menu.push({ label: 'Add Theme', command: "wordpress-suite:site:theme:add:#{@namespace}" })
+				@menu.push({ type:'separator' })
+
 				for theme in themes
 					@subscriptions.add atom.commands.add ".project-root",
 						"wordpress-suite:site:theme:add-folder:#{@namespace}:#{theme.name}": (event) =>
@@ -74,6 +74,16 @@ module.exports = class Themes
 
 					@menu.push({ label: theme.name, submenu: submenu })
 
+				@menu.push({ type:'separator' })
+				submenu = []
+
+				if themes.filter((p) -> return p.update is 'available').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:theme:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.themes.update_all()
+					submenu.push({ label: 'Update', command: "wordpress-suite:site:theme:update-all:#{@namespace}" })
+
+				@menu.push({ label: 'All Themes', submenu: submenu })
+
 		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Themes', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.themes.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.themes)}] }] }
 
 	getMenu: ->
@@ -101,7 +111,7 @@ module.exports = class Themes
 
 	update_all: ->
 		@emitter.emit 'notification', [ "Updating All Themes", 'info' ]
-		@wp.theme.update {all:true}, (err,message) =>
+		@wp.theme.update {all:true}, (err,themes) =>
 			if err
 				@emitter.emit 'message', [ "Error Updating All Themes", 'error', err ]
 			else

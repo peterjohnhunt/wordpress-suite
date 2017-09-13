@@ -59,6 +59,7 @@ module.exports =
 				'package.json',
 				'lib/actions.coffee',
 				'lib/config.json',
+				'lib/editor.coffee',
 				'lib/info.coffee',
 				'lib/log-file.coffee',
 				'lib/main.coffee',
@@ -71,6 +72,8 @@ module.exports =
 				'lib/views.coffee',
 				'lib/wordpress-suite.coffee'
 				'lib/wpcli.coffee'
+				'views/plugin-list.coffee'
+				'views/theme-list.coffee'
 			]
 		)
 		@log 'Setup Autoreload', 6

@@ -1,4 +1,5 @@
 {CompositeDisposable, Emitter, Disposable, Directory} = require 'atom'
+PluginsListView = require '../views/plugins-list'
 
 module.exports = class Plugins
 
@@ -31,11 +32,10 @@ module.exports = class Plugins
 	setup: ->
 		@wp.plugin.list (err,plugins) =>
 			if not err
-				if plugins.filter((p) -> return p.update is 'available').length > 0
-					@subscriptions.add atom.commands.add ".project-root",
-						"wordpress-suite:site:plugin:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.plugins.update_all()
-					@menu.push({ label: 'Update All', command: "wordpress-suite:site:plugin:update-all:#{@namespace}" })
-					@menu.push({ type:'separator' })
+				@subscriptions.add atom.commands.add ".project-root", "wordpress-suite:site:plugin:add:#{@namespace}": (event) => pluginsList = new PluginsListView
+				@menu.push({ label: 'Add Plugin', command: "wordpress-suite:site:plugin:add:#{@namespace}" })
+				@menu.push({ type:'separator' })
+
 				for plugin in plugins
 					@subscriptions.add atom.commands.add ".project-root",
 						"wordpress-suite:site:plugin:add-folder:#{@namespace}:#{plugin.name}": (event) =>
@@ -80,6 +80,26 @@ module.exports = class Plugins
 
 					@menu.push({ label: plugin.name, submenu: submenu })
 
+				@menu.push({ type:'separator' })
+				submenu = []
+
+				if plugins.filter((p) -> return p.update is 'available').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:plugin:update-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.plugins.update_all()
+					submenu.push({ label: 'Update', command: "wordpress-suite:site:plugin:update-all:#{@namespace}" })
+
+				if plugins.filter((p) -> return p.status is 'inactive').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:plugin:activate-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.plugins.activate_all()
+					submenu.push({ label: 'Activate', command: "wordpress-suite:site:plugin:activate-all:#{@namespace}" })
+
+				if plugins.filter((p) -> return p.status is 'active').length > 0
+					@subscriptions.add atom.commands.add ".project-root",
+						"wordpress-suite:site:plugin:deactivate-all:#{@namespace}": (event) => atom.wordpressSuite.getSelectedSite().wpcli.plugins.deactivate_all()
+					submenu.push({ label: 'Deactivate', command: "wordpress-suite:site:plugin:deactivate-all:#{@namespace}" })
+
+				@menu.push({ label: 'All Plugins', submenu: submenu })
+
 		@subscriptions.add atom.contextMenu.add { ".project-root": [{ label: 'Wordpress Suite', submenu: [{ label: 'Plugins', submenu: [], created: (-> @submenu = atom.wordpressSuite.getSelectedSite().wpcli.plugins.getMenu()), shouldDisplay: (-> atom.wordpressSuite.getSelectedSite().wpcli.plugins)}] }] }
 
 	getMenu: ->
@@ -114,6 +134,15 @@ module.exports = class Plugins
 				@emitter.emit 'message', [ "#{name} Updated", 'success', "Plugin '#{name}' updated.\nSuccess: Updated 1 of 1 plugins." ]
 				@refresh()
 
+	install: (name) ->
+		@emitter.emit 'notification', [ "Installing #{name}", 'info' ]
+		@wp.plugin.install name, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Installing #{name}", 'error', err ]
+			else
+				@emitter.emit 'message', [ "#{name} Installed", 'success', message ]
+				@refresh()
+
 	update_all: ->
 		@emitter.emit 'notification', [ "Updating All Plugins", 'info' ]
 		@wp.plugin.update {all:true}, (err,plugins) =>
@@ -122,6 +151,24 @@ module.exports = class Plugins
 			else
 				names = plugins.map((p) => return p.name)
 				@emitter.emit 'message', [ "All Plugins Updated", 'success', "Plugins '#{names.join(', ')}' updated.\nSuccess: Updated #{names.length} of #{names.length} plugins." ]
+				@refresh()
+
+	activate_all: ->
+		@emitter.emit 'notification', [ "Activating All Plugins", 'info' ]
+		@wp.plugin.activate {all:true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Activating All Plugins", 'error', err ]
+			else
+				@emitter.emit 'message', [ "All Plugins Activated", 'success', message ]
+				@refresh()
+
+	deactivate_all: ->
+		@emitter.emit 'notification', [ "Deactivating All Plugins", 'info' ]
+		@wp.plugin.deactivate {all:true}, (err,message) =>
+			if err
+				@emitter.emit 'message', [ "Error Deactivating All Plugins", 'error', err ]
+			else
+				@emitter.emit 'message', [ "All Plugins Deactivated", 'success', message ]
 				@refresh()
 
 	delete: (name) ->

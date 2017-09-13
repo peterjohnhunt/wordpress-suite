@@ -7,16 +7,19 @@ module.exports = class Views
 		@log 'Created', 6
 
 	create: (uri) ->
-		uriRegex = /wordpress-suite\/?([a-zA-Z0-9_-]+)?\/?([a-zA-Z0-9_-]+)?/i
-		match = uriRegex.exec(uri)
-
-		console.log match
+		# console.log atom.wordpressSuite.getSelectedSite()
+		# uriRegex = /wordpress-suite\/?([a-zA-Z0-9_-]+)?\/?([a-zA-Z0-9_-]+)?/i
+		# match = uriRegex.exec(uri)
+		#
+		# sitePath = match
+		# site = atom.wordpressSuite.projects.projectPaths.indexOf(sitePath)
+		# console.log site
 
 		@element = document.createElement('div')
 		@element.classList.add('wordpress-suite')
 
 		title = document.createElement('h1')
-		title.textContent = 'Wordpress Suite'
+		title.textContent = "WordPress Suite"
 		title.classList.add('title')
 
 		@element.appendChild(title)

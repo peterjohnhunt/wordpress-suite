@@ -42,6 +42,7 @@ module.exports = class Actions
 				mediaPath = site.getSelectedFile().getPath()
 				site.wpcli.import_media(mediaPath)
 			"wordpress-suite:site:refresh": -> atom.wordpressSuite.getSelectedSite().refresh()
+			# "wordpress-suite:site:open": -> atom.wordpressSuite.getSelectedSite().open()
 
 		@subscriptions.add atom.contextMenu.add {
 			".project-root": [{ label: 'Wordpress Suite', submenu: [
@@ -57,6 +58,7 @@ module.exports = class Actions
 				{ label: 'Import As Media', command: "wordpress-suite:site:wp-cli:import-media", shouldDisplay: -> return atom.wordpressSuite.getSelectedSite()?.hasWPCLI('installed') }
 				{ type: 'separator' }
 				{ label: 'Refresh', command: "wordpress-suite:site:refresh" }
+				# { label: 'Open', command: "wordpress-suite:site:open" }
 				{ type: 'separator' }
 				{ label: 'Setup', submenu: [
 					{ label: 'Full Setup', command: "wordpress-suite:site:wp-cli:full-setup", shouldDisplay: ->

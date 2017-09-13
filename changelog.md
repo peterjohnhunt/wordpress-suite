@@ -1,6 +1,15 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.2.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.1.1...v1.2.0) | 2017-09-13
+### Added
+ - WPCLI: Install Plugin
+ - WPCLI: Install Theme
+ - WPCLI: Plugin Active / Deactivate All
+ - WPCLI: Code Evaluation (Beta)
+### Fixed
+ - WPCLI: Version Update Text Notification
+
 ## [v1.1.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.1.0...v1.1.1) | 2017-07-11
 ### Fixed
  - WordPress capitalization

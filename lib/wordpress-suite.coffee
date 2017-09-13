@@ -12,6 +12,8 @@ module.exports = class WordpressSuite
 		@log = @logger "core"
 
 		@wp = null
+		@projects = null
+		@actions = null
 		@views = null
 
 		@subscriptions = new CompositeDisposable
@@ -29,12 +31,11 @@ module.exports = class WordpressSuite
 			if exists
 				WP.discover (wp) =>
 					@wp = wp
-					wp.cli.check_update (err, update) =>
-						if update
-							console.log update
+					wp.cli.check_update (err, updates) =>
+						if updates
 							atom.notifications.add('info', 'WP-CLI Update Available:', {
 								dismissable: true,
-								detail: update,
+								detail: updates.shift().version,
 								buttons: [
 									{ text: 'Update', className: 'btn-update', onDidClick: ->
 										@removeNotification()
@@ -52,6 +53,10 @@ module.exports = class WordpressSuite
 		@log 'Created', 6
 
 		new Disposable()
+
+	getSiteByName: (name) ->
+		for site in @projects.sites
+			return site if site.name is name
 
 	getSelectedSite: ->
 		for site in @projects.sites

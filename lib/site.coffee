@@ -156,6 +156,10 @@ module.exports = class Site
 		atom.project.addPath(@root)
 		@notifications.add("#{@name.toUpperCase()} | Added Root")
 
+	# open: ->
+	# 	atom.workspace.open('atom://wordpress-suite/')
+	# 	@notifications.add("#{@name.toUpperCase()} | Opened Info")
+
 	hasRoot: ->
 		return @hasPath(@root)
 

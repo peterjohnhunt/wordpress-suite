@@ -7,6 +7,7 @@ Plugins = require './plugins'
 Themes = require './themes'
 Info = require './info'
 Users = require './users'
+Editor = require './editor'
 
 module.exports = class WPCLI
 
@@ -21,6 +22,7 @@ module.exports = class WPCLI
 		@themes = null
 		@info = null
 		@users = null
+		@editor = null
 
 		@status = {
 			yml: null
@@ -47,6 +49,7 @@ module.exports = class WPCLI
 		@themes = null
 		@info = null
 		@users = null
+		@editor = null
 		@status = {
 			yml: null
 			exists: null
@@ -148,6 +151,9 @@ module.exports = class WPCLI
 					@subscriptions.add @users = new Users(@wp, @logger, @namespace)
 					@subscriptions.add @users.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
 					@subscriptions.add @users.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
+					@subscriptions.add @editor = new Editor(@wp, @logger, @namespace)
+					@subscriptions.add @editor.onNotification ([title,type]) => @emitter.emit 'notification', [title,type]
+					@subscriptions.add @editor.onMessage ([title,type,detail]) => @emitter.emit 'message', [title,type,detail]
 					@emitter.emit 'notification', [ 'WP-CLI: Initialized' ]
 				@status.ready = true
 
@@ -395,6 +401,7 @@ module.exports = class WPCLI
 			@themes = null
 			@info = null
 			@users = null
+			@editor = null
 			@status = {
 				yml: null
 				exists: null
