@@ -165,5 +165,5 @@ For any issues, additions or bugs, feel free to [open an issue](https://github.c
 ## TODO
 * View Site (Open Link)
 * Delete Media File on Import
-* Add Dialogs and Add Plugin / Add Theme Features
+
 ---
