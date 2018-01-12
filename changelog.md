@@ -1,6 +1,10 @@
 # Change Log
 All notable changes or release notes for this project will be documented in this file
 
+## [v1.2.1](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.2.0...v1.2.1) | 2018-01-12
+### Added
+ - Added Additional Setting Defaults ([Bug #13](https://github.com/peterjohnhunt/wordpress-suite/issues/13))
+
 ## [v1.2.0](https://github.com/peterjohnhunt/wordpress-suite/compare/v1.1.1...v1.2.0) | 2017-09-13
 ### Added
  - WPCLI: Install Plugin
