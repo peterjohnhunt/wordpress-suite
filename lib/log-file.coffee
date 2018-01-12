@@ -37,7 +37,7 @@ module.exports = class LogFile
 				# @subscriptions.add @file.onDidRename => console.log('renamed')
 				# @subscriptions.add @file.onDidDelete => console.log('deleted')
 
-				@watching = true
+				@watching = atom.config.get('wordpress-suite.features.log-file')
 
 				@create()
 
@@ -85,23 +85,40 @@ module.exports = class LogFile
 							if message.indexOf('PHP Parse error:') == 0
 								message = message.replace(/PHP Parse error:\s+/,'')
 								title = 'Log File Error'
+								emit = atom.config.get('wordpress-suite.log-file.error');
 								type = 'error'
 							else if message.indexOf('PHP Notice:') == 0
 								message = message.replace(/PHP Notice:\s+/,'')
 								title = 'Log File Notice'
+								emit = atom.config.get('wordpress-suite.log-file.notice');
 								type = 'warning'
 							else if message.indexOf('PHP Deprecated:') == 0
 								message = message.replace(/PHP Deprecated:\s+/,'')
 								title = 'Log File Deprecation'
+								emit = atom.config.get('wordpress-suite.log-file.deprecated');
 								type = 'warning'
 							else if message.indexOf('PHP Warning:') == 0
 								message = message.replace(/PHP Warning:\s+/,'')
 								title = 'Log File Warning'
+								emit = atom.config.get('wordpress-suite.log-file.warning');
+								type = 'warning'
+							else if message.indexOf('PHP Stack trace:') == 0
+								message = message.replace(/PHP Stack trace:/,'')
+								title = 'Log File Stack Trace'
+								emit = atom.config.get('wordpress-suite.log-file.trace');
+								type = 'warning'
+							else if message.indexOf('PHP  ') == 0
+								message = message.replace(/PHP  /,'')
+								title = 'Log File Stack Trace'
+								emit = atom.config.get('wordpress-suite.log-file.trace');
 								type = 'warning'
 							else
 								title = 'Log File Message'
+								emit = atom.config.get('wordpress-suite.log-file.info');
 								type = 'info'
-							@emitter.emit 'message', [title, type, message]
+
+							if emit
+								@emitter.emit 'message', [title, type, message]
 				@contents = contents
 
 	dispose: ->

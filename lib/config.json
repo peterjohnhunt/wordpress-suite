@@ -1,8 +1,70 @@
 {
+	"features":{
+		"title": "Features",
+		"type": "object",
+		"order": 1,
+		"properties":{
+			"log-file":{
+				"title": "Debug Log Watcher",
+				"type": "boolean",
+				"default": true,
+				"order": 1
+			},
+			"notifications":{
+				"title": "Notifications",
+				"type": "boolean",
+				"default": true,
+				"order": 2
+			}
+		}
+	},
+	"log-file":{
+		"title": "Debug Log Watcher",
+		"type": "object",
+		"order": 1,
+		"properties":{
+			"error":{
+				"title": "Watch for PHP Errors",
+				"type": "boolean",
+				"default": true,
+				"order": 1
+			},
+			"notice":{
+				"title": "Watch for PHP Notices",
+				"type": "boolean",
+				"default": true,
+				"order": 2
+			},
+			"deprecated":{
+				"title": "Watch for PHP Deprecations",
+				"type": "boolean",
+				"default": true,
+				"order": 3
+			},
+			"warning":{
+				"title": "Watch for PHP Warnings",
+				"type": "boolean",
+				"default": true,
+				"order": 4
+			},
+			"trace":{
+				"title": "Watch for PHP Stack Traces",
+				"type": "boolean",
+				"default": true,
+				"order": 5
+			},
+			"info":{
+				"title": "Watch for Info Messages",
+				"type": "boolean",
+				"default": true,
+				"order": 6
+			}
+		}
+	},
 	"wpcli":{
 		"title": "WP CLI",
 		"type": "object",
-		"order": 1,
+		"order": 2,
 		"properties":{
 			"dbuser":{
 				"title":"MySQL Username",
@@ -60,6 +122,6 @@
 		"type": "integer",
 		"default": 0,
 		"minimum": 0,
-		"order": 2
+		"order": 3
 	}
 }

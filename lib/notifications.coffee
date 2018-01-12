@@ -8,7 +8,7 @@ module.exports = class Notifications
 		@logger = logger
 		@log    = @logger "site.#{namespace}.notifications"
 
-		@enabled  = true
+		@enabled  = atom.config.get('wordpress-suite.features.notifications')
 
 		@messages = []
 		@muted    = []
@@ -26,7 +26,7 @@ module.exports = class Notifications
 
 	refresh: ->
 		@subscriptions?.dispose()
-		@enabled  = true
+		@enabled  = atom.config.get('wordpress-suite.features.notifications')
 		@messages = []
 		@muted    = []
 		@notifications = null
