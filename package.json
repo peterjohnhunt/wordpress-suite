@@ -20,6 +20,7 @@
     "atom-space-pen-views": "^2.2.0",
     "atom-utils": "^0.9.2",
     "command-exists": "^1.0.2",
+    "dotenv": "^4.0.0",
     "wp-cli": "0.0.5",
     "yamljs": "^0.2.8"
   },

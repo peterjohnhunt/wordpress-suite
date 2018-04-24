@@ -93,7 +93,7 @@ module.exports = class Notifications
 
 	mute: (message) ->
 		@muted.push(message)
-		@emitter.emit 'mute', [ 'Muted Notification', 'warning', message ]
+		@emitter.emit 'mute', [ 'Muted Notification', 'success', message ]
 
 	unmute: (message) ->
 		index = @muted.indexOf(message)

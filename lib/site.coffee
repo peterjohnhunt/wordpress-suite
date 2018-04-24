@@ -34,10 +34,9 @@ module.exports = class Site
 	setup: ->
 		requirePackages('tree-view').then ([treeViewPackage]) =>
 			@treeView = treeViewPackage.treeView
-			@subscriptions.add @logFile       = new LogFile(@root,@logger,@name)
-			@subscriptions.add @wpcli         = new WPCLI(@root,@logger,@name)
-			@subscriptions.add @notifications = new Notifications(@logger,@name)
 
+			@subscriptions.add @notifications = new Notifications(@logger,@name)
+			@subscriptions.add @logFile = new LogFile(@root,@logger,@name)
 			@subscriptions.add @logFile.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
 			@subscriptions.add @logFile.onMessage ([title,type,detail]) =>
 				options = {
@@ -63,6 +62,7 @@ module.exports = class Site
 				}
 				@notifications.add("#{@name.toUpperCase()} | #{title}", type, options)
 
+			@subscriptions.add @wpcli = new WPCLI(@root,@logger,@name)
 			@subscriptions.add @wpcli.onNotification ([title,type]) => @notifications.add("#{@name.toUpperCase()} | #{title}", type)
 			@subscriptions.add @wpcli.onMessage ([title,type,detail]) =>
 				options = {

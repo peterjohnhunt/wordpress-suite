@@ -8,6 +8,7 @@ module.exports = class LogFile
 		@sitePath = sitePath
 
 		@contents = ''
+		@message  = ''
 		@emitter  = new Emitter
 
 		@subscriptions = new CompositeDisposable
@@ -82,6 +83,21 @@ module.exports = class LogFile
 					messages = contents.replace(@contents,'').split(/^\[\d{2}-\w{3}-\d{4} \d{2}:\d{2}:\d{2} UTC\] /gm)
 					for message in messages
 						if message isnt ''
+
+							if message.indexOf('PHP Stack trace:') == 0
+								@message = message.replace(/PHP Stack trace:\s+/,'')
+								continue
+							else if message.indexOf('PHP  ') == 0
+								@message += message.replace(/PHP\s+\d\./,'\n')
+								continue
+							else if @message isnt ''
+								title = 'Log File Stack Trace'
+								emit = atom.config.get('wordpress-suite.log-file.trace');
+								type = 'warning'
+								if emit
+									@emitter.emit 'message', [title, type, @message]
+								@message = ''
+
 							if message.indexOf('PHP Parse error:') == 0
 								message = message.replace(/PHP Parse error:\s+/,'')
 								title = 'Log File Error'
@@ -102,16 +118,6 @@ module.exports = class LogFile
 								title = 'Log File Warning'
 								emit = atom.config.get('wordpress-suite.log-file.warning');
 								type = 'warning'
-							else if message.indexOf('PHP Stack trace:') == 0
-								message = message.replace(/PHP Stack trace:/,'')
-								title = 'Log File Stack Trace'
-								emit = atom.config.get('wordpress-suite.log-file.trace');
-								type = 'warning'
-							else if message.indexOf('PHP  ') == 0
-								message = message.replace(/PHP  /,'')
-								title = 'Log File Stack Trace'
-								emit = atom.config.get('wordpress-suite.log-file.trace');
-								type = 'warning'
 							else
 								title = 'Log File Message'
 								emit = atom.config.get('wordpress-suite.log-file.info');
@@ -119,6 +125,7 @@ module.exports = class LogFile
 
 							if emit
 								@emitter.emit 'message', [title, type, message]
+
 				@contents = contents
 
 	dispose: ->
